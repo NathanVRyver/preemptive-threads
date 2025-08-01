@@ -1,0 +1,37 @@
+use crate::scheduler::SCHEDULER;
+
+pub fn yield_thread() {
+    unsafe {
+        let scheduler = SCHEDULER.get();
+        
+        if let Some(current_id) = scheduler.get_current_thread() {
+            if let Some(next_id) = scheduler.schedule() {
+                if current_id != next_id {
+                    scheduler.set_current_thread(Some(next_id));
+                    let _ = scheduler.switch_context(current_id, next_id);
+                }
+            }
+        }
+    }
+}
+
+pub fn exit_thread() -> ! {
+    unsafe {
+        let scheduler = SCHEDULER.get();
+        scheduler.exit_current_thread();
+        
+        if let Some(next_id) = scheduler.schedule() {
+            let current_id = scheduler.get_current_thread().unwrap_or(0);
+            scheduler.set_current_thread(Some(next_id));
+            let _ = scheduler.switch_context(current_id, next_id);
+        }
+    }
+    
+    loop {
+        unsafe { core::arch::asm!("hlt") }
+    }
+}
+
+pub fn sleep_ms(_ms: u64) {
+    yield_thread();
+}
