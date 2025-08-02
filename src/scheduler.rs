@@ -1,5 +1,5 @@
-use crate::thread::{Thread, ThreadId, ThreadState};
 use crate::error::{ThreadError, ThreadResult};
+use crate::thread::{Thread, ThreadId, ThreadState};
 use core::cell::UnsafeCell;
 
 const MAX_THREADS: usize = 32;
@@ -63,7 +63,7 @@ impl Scheduler {
         priority: u8,
     ) -> ThreadResult<ThreadId> {
         let thread_id = self.next_thread_id;
-        
+
         if thread_id >= MAX_THREADS {
             return Err(ThreadError::MaxThreadsReached);
         }
@@ -86,7 +86,6 @@ impl Scheduler {
         self.run_queue_tail = next_tail;
         Ok(())
     }
-
 
     pub fn schedule(&mut self) -> Option<ThreadId> {
         if let Some(current) = self.current_thread {
@@ -124,18 +123,18 @@ impl Scheduler {
 
         if let (Some(thread_id), Some(index)) = (best_thread, best_index) {
             self.run_queue[index] = None;
-            
+
             let mut read_pos = (index + 1) % MAX_THREADS;
             let mut write_pos = index;
-            
+
             while read_pos != self.run_queue_tail {
                 self.run_queue[write_pos] = self.run_queue[read_pos];
                 write_pos = (write_pos + 1) % MAX_THREADS;
                 read_pos = (read_pos + 1) % MAX_THREADS;
             }
-            
+
             self.run_queue_tail = write_pos;
-            
+
             return Some(thread_id);
         }
 
@@ -167,12 +166,12 @@ impl Scheduler {
     pub fn exit_current_thread(&mut self) {
         if let Some(current) = self.current_thread {
             let mut waiters_to_wake = [None; 4];
-            
+
             if let Some(thread) = &mut self.threads[current] {
                 thread.state = ThreadState::Finished;
                 waiters_to_wake = thread.join_waiters;
             }
-            
+
             // Wake up any threads waiting to join this one
             for waiter in waiters_to_wake.iter().flatten() {
                 if let Some(waiter_thread) = &mut self.threads[*waiter] {
@@ -199,16 +198,16 @@ impl Scheduler {
             for slot in &mut target_thread.join_waiters {
                 if slot.is_none() {
                     *slot = Some(current_id);
-                    
+
                     // Block current thread
                     if let Some(current_thread) = &mut self.threads[current_id] {
                         current_thread.state = ThreadState::Blocked;
                     }
-                    
+
                     return Ok(());
                 }
             }
-            
+
             Err(ThreadError::SchedulerFull)
         } else {
             Err(ThreadError::InvalidThreadId)
@@ -247,7 +246,7 @@ impl Scheduler {
         unsafe {
             crate::context::switch_context(from_context, to_context);
         }
-        
+
         Ok(())
     }
 }

@@ -15,7 +15,8 @@ impl Preemption {
     pub unsafe fn enable(&mut self, interval_us: u64) {
         extern "C" {
             fn signal(sig: i32, handler: extern "C" fn(i32)) -> i32;
-            fn setitimer(which: i32, new_value: *const itimerval, old_value: *mut itimerval) -> i32;
+            fn setitimer(which: i32, new_value: *const itimerval, old_value: *mut itimerval)
+                -> i32;
         }
 
         const SIGALRM: i32 = 14;
@@ -56,7 +57,8 @@ impl Preemption {
         }
 
         extern "C" {
-            fn setitimer(which: i32, new_value: *const itimerval, old_value: *mut itimerval) -> i32;
+            fn setitimer(which: i32, new_value: *const itimerval, old_value: *mut itimerval)
+                -> i32;
         }
 
         const ITIMER_REAL: i32 = 0;
@@ -74,8 +76,14 @@ impl Preemption {
         }
 
         let timer = itimerval {
-            it_interval: timeval { tv_sec: 0, tv_usec: 0 },
-            it_value: timeval { tv_sec: 0, tv_usec: 0 },
+            it_interval: timeval {
+                tv_sec: 0,
+                tv_usec: 0,
+            },
+            it_value: timeval {
+                tv_sec: 0,
+                tv_usec: 0,
+            },
         };
 
         setitimer(ITIMER_REAL, &timer, core::ptr::null_mut());
@@ -87,7 +95,7 @@ impl Preemption {
 extern "C" fn timer_handler(_sig: i32) {
     unsafe {
         let scheduler = crate::scheduler::SCHEDULER.get();
-        
+
         if let Some(current_id) = scheduler.get_current_thread() {
             if let Some(next_id) = scheduler.schedule() {
                 if current_id != next_id {

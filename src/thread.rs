@@ -1,4 +1,3 @@
-
 pub type ThreadId = usize;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,20 +37,15 @@ pub struct Thread {
 impl Thread {
     pub const STACK_SIZE: usize = 64 * 1024;
 
-    pub fn new(
-        id: ThreadId,
-        stack: &'static mut [u8],
-        entry_point: fn(),
-        priority: u8,
-    ) -> Self {
+    pub fn new(id: ThreadId, stack: &'static mut [u8], entry_point: fn(), priority: u8) -> Self {
         let stack_top = unsafe { stack.as_mut_ptr().add(stack.len()) };
         let stack_bottom = stack.as_mut_ptr();
         let stack_guard = 0xDEADBEEFCAFEBABE;
-        
+
         unsafe {
             core::ptr::write(stack_bottom as *mut u64, stack_guard);
         }
-        
+
         let mut thread = Thread {
             id,
             state: ThreadState::Ready,
@@ -82,13 +76,13 @@ impl Thread {
     fn initialize_stack(&mut self) {
         unsafe {
             let stack_ptr = self.stack_top as *mut u64;
-            
+
             let stack_ptr = stack_ptr.sub(1);
             *stack_ptr = thread_wrapper as usize as u64;
-            
+
             let stack_ptr = stack_ptr.sub(1);
             *stack_ptr = 0;
-            
+
             self.context.rsp = stack_ptr as u64;
             self.context.rip = thread_entry as usize as u64;
         }

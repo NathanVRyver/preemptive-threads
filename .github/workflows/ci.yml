@@ -38,19 +38,19 @@ jobs:
     - name: Run clippy
       run: cargo clippy --all-targets --all-features -- -D warnings
       
-    - name: Build library
+    - name: Build library (native target)
       run: cargo build --verbose
       
-    - name: Run tests
-      run: cargo test --verbose
+    - name: Run tests with std feature
+      run: cargo test --lib --features std --verbose
       
-    - name: Build examples
+    - name: Build examples with std feature
       run: |
-        cargo build --bin example
-        cargo build --bin benchmark
-        cargo build --bin interactive_demo
-        cargo build --bin stress_test
-        cargo build --bin priority_test
+        cargo build --bin example --features std
+        cargo build --bin benchmark --features std
+        cargo build --bin interactive_demo --features std
+        cargo build --bin stress_test --features std
+        cargo build --bin priority_test --features std
 
   cross-platform:
     name: Cross Platform Build
@@ -66,11 +66,14 @@ jobs:
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       
-    - name: Build
+    - name: Build (no_std)
       run: cargo build --verbose
       
-    - name: Test
-      run: cargo test --verbose
+    - name: Build with std feature  
+      run: cargo build --features std --verbose
+      
+    - name: Test with std feature
+      run: cargo test --lib --features std --verbose
 
   security:
     name: Security Audit
@@ -101,7 +104,7 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       
     - name: Build documentation
-      run: cargo doc --no-deps --document-private-items
+      run: cargo doc --no-deps --document-private-items --features std
       
     - name: Check for documentation warnings
       run: cargo doc --no-deps 2>&1 | grep -q "warning" && exit 1 || exit 0

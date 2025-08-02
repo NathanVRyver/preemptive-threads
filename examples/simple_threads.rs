@@ -24,11 +24,15 @@ fn worker_thread_2() {
 fn main() {
     unsafe {
         let scheduler = SCHEDULER.get();
-        
+
         // Spawn two threads with equal priority
-        scheduler.spawn_thread(&mut STACK1, worker_thread_1, 1).unwrap();
-        scheduler.spawn_thread(&mut STACK2, worker_thread_2, 1).unwrap();
-        
+        scheduler
+            .spawn_thread(&mut STACK1, worker_thread_1, 1)
+            .unwrap();
+        scheduler
+            .spawn_thread(&mut STACK2, worker_thread_2, 1)
+            .unwrap();
+
         // Simple scheduler loop
         while let Some(next_id) = scheduler.schedule() {
             if let Some(thread) = scheduler.get_thread(next_id) {
@@ -41,6 +45,6 @@ fn main() {
             }
         }
     }
-    
+
     println!("All threads completed!");
 }
