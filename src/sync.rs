@@ -28,7 +28,11 @@ pub fn exit_thread() -> ! {
     }
 
     loop {
+        #[cfg(target_arch = "x86_64")]
         unsafe { core::arch::asm!("hlt") }
+        
+        #[cfg(not(target_arch = "x86_64"))]
+        core::hint::spin_loop();
     }
 }
 

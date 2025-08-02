@@ -3,6 +3,7 @@ use crate::thread::ThreadContext;
 /// # Safety
 /// This function performs low-level context switching between threads.
 /// Caller must ensure valid ThreadContext pointers and proper thread state.
+#[cfg(target_arch = "x86_64")]
 #[unsafe(naked)]
 #[no_mangle]
 pub unsafe extern "C" fn switch_context(from: *mut ThreadContext, to: *const ThreadContext) {
@@ -44,3 +45,6 @@ pub unsafe extern "C" fn switch_context(from: *mut ThreadContext, to: *const Thr
         "
     );
 }
+
+#[cfg(not(target_arch = "x86_64"))]
+compile_error!("This library currently only supports x86_64 architecture. ARM64 and other architectures are not yet implemented.");

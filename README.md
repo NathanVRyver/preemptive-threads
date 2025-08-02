@@ -133,9 +133,12 @@ Hand-written x86_64 assembly preserves all callee-saved registers:
 
 ## Platform Support
 
-- **Primary**: x86_64 (macOS, Linux)
-- **Planned**: aarch64, RISC-V
-- **Targets**: Userland testing, OS kernels, embedded systems
+- **Supported**: x86_64 only (Intel macOS, Linux, Windows)
+- **Not Supported**: ARM64/aarch64 (Apple Silicon), RISC-V, other architectures
+- **Planned**: aarch64, RISC-V support in future versions
+- **Targets**: Userland testing, OS kernels, embedded x86_64 systems
+
+⚠️ **Note**: This library uses hand-written x86_64 assembly and will not compile on other architectures.
 
 ## Limitations
 
