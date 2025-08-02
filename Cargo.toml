@@ -57,3 +57,8 @@ required-features = ["std"]
 name = "interactive_demo"
 path = "src/bin/interactive_demo.rs"
 required-features = ["std"]
+
+[[bin]]
+name = "performance_benchmark"
+path = "src/bin/performance_benchmark.rs"
+required-features = ["std"]

@@ -17,8 +17,8 @@ extern crate std;
 #[cfg(all(not(test), not(feature = "std")))]
 use core::panic::PanicInfo;
 
-#[panic_handler]
 #[cfg(all(not(test), not(feature = "std")))]
+#[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
