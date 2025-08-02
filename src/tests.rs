@@ -81,14 +81,14 @@ mod tests {
 
         fn test_thread() {}
 
-        // Spawn maximum number of threads
+        // Spawn maximum number of threads (should succeed for 0-31)
         for i in 0..32 {
             let stack: &'static mut [u8] = unsafe { std::mem::transmute(stacks[i].as_mut_slice()) };
             let result = scheduler.spawn_thread(stack, test_thread, 1);
             assert!(result.is_ok(), "Failed to spawn thread {}", i);
         }
 
-        // 33rd thread should fail
+        // 33rd thread (index 32) should fail
         let stack: &'static mut [u8] = unsafe { std::mem::transmute(stacks[32].as_mut_slice()) };
         let result = scheduler.spawn_thread(stack, test_thread, 1);
         assert!(result.is_err());
@@ -116,10 +116,10 @@ mod tests {
         let next = scheduler.schedule();
         assert_eq!(next, Some(high_priority));
 
-        // Set high priority to running to simulate execution
+        // Simulate high priority thread finishing
         scheduler.set_current_thread(Some(high_priority));
         let thread = scheduler.get_thread_mut(high_priority).unwrap();
-        thread.state = ThreadState::Running;
+        thread.state = ThreadState::Finished;
 
         // Next schedule should return medium priority
         let next = scheduler.schedule();

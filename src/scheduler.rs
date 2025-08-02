@@ -11,6 +11,7 @@ pub struct Scheduler {
     run_queue: [Option<ThreadId>; MAX_THREADS],
     run_queue_head: usize,
     run_queue_tail: usize,
+    run_queue_count: usize,
 }
 
 pub struct SchedulerCell(UnsafeCell<Scheduler>);
@@ -53,6 +54,7 @@ impl Scheduler {
             run_queue: [None; MAX_THREADS],
             run_queue_head: 0,
             run_queue_tail: 0,
+            run_queue_count: 0,
         }
     }
 
@@ -77,20 +79,22 @@ impl Scheduler {
     }
 
     fn enqueue_thread(&mut self, thread_id: ThreadId) -> ThreadResult<()> {
-        let next_tail = (self.run_queue_tail + 1) % MAX_THREADS;
-        if next_tail == self.run_queue_head {
+        if self.run_queue_count >= MAX_THREADS {
             return Err(ThreadError::SchedulerFull);
         }
 
         self.run_queue[self.run_queue_tail] = Some(thread_id);
-        self.run_queue_tail = next_tail;
+        self.run_queue_tail = (self.run_queue_tail + 1) % MAX_THREADS;
+        self.run_queue_count += 1;
         Ok(())
     }
 
     pub fn schedule(&mut self) -> Option<ThreadId> {
         if let Some(current) = self.current_thread {
-            if let Some(thread) = &self.threads[current] {
+            if let Some(thread) = &mut self.threads[current] {
                 if thread.state == ThreadState::Running {
+                    // Set back to Ready when yielding
+                    thread.state = ThreadState::Ready;
                     let _ = self.enqueue_thread(current);
                 }
             }
@@ -100,28 +104,44 @@ impl Scheduler {
     }
 
     fn schedule_with_priority(&mut self) -> Option<ThreadId> {
+        if self.run_queue_count == 0 {
+            return None;
+        }
+
         let mut best_thread = None;
         let mut highest_priority = 0u8;
         let mut best_index = None;
 
-        for i in 0..MAX_THREADS {
+        // First pass: find the highest priority
+        for i in 0..self.run_queue_count {
             let queue_index = (self.run_queue_head + i) % MAX_THREADS;
-            if queue_index == self.run_queue_tail {
-                break;
-            }
 
             if let Some(thread_id) = self.run_queue[queue_index] {
                 if let Some(thread) = &self.threads[thread_id] {
-                    if thread.is_runnable() && thread.priority >= highest_priority {
+                    if thread.is_runnable() && thread.priority > highest_priority {
                         highest_priority = thread.priority;
+                    }
+                }
+            }
+        }
+
+        // Second pass: find the first thread with highest priority (round-robin for equal priorities)
+        for i in 0..self.run_queue_count {
+            let queue_index = (self.run_queue_head + i) % MAX_THREADS;
+
+            if let Some(thread_id) = self.run_queue[queue_index] {
+                if let Some(thread) = &self.threads[thread_id] {
+                    if thread.is_runnable() && thread.priority == highest_priority {
                         best_thread = Some(thread_id);
                         best_index = Some(queue_index);
+                        break; // Take the first one we find for round-robin
                     }
                 }
             }
         }
 
         if let (Some(thread_id), Some(index)) = (best_thread, best_index) {
+            // Remove from queue and compact
             self.run_queue[index] = None;
 
             let mut read_pos = (index + 1) % MAX_THREADS;
@@ -129,11 +149,13 @@ impl Scheduler {
 
             while read_pos != self.run_queue_tail {
                 self.run_queue[write_pos] = self.run_queue[read_pos];
+                self.run_queue[read_pos] = None;
                 write_pos = (write_pos + 1) % MAX_THREADS;
                 read_pos = (read_pos + 1) % MAX_THREADS;
             }
 
             self.run_queue_tail = write_pos;
+            self.run_queue_count -= 1;
 
             return Some(thread_id);
         }

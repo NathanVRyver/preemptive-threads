@@ -1,6 +1,6 @@
-extern crate preemptive_mlthreading_rust;
+extern crate preemptive_threads;
 
-use preemptive_mlthreading_rust::{scheduler::SCHEDULER, sync::yield_thread};
+use preemptive_threads::{scheduler::SCHEDULER, sync::yield_thread};
 
 static mut STACK1: [u8; 32 * 1024] = [0; 32 * 1024];
 static mut STACK2: [u8; 32 * 1024] = [0; 32 * 1024];
