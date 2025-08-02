@@ -1,15 +1,15 @@
 [package]
-name = "chronos"
+name = "preemptive-threads"
 version = "0.1.0"
 edition = "2021"
 authors = ["Nathan Ryver <tantaouisoftware@gmail.com>"]
 description = "A no_std preemptive multithreading library built from scratch for OS kernels and embedded systems"
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/NathanVRyver/Chronos"
+repository = "https://github.com/NathanVRyver/preemptive-threads"
 keywords = ["threading", "no-std", "kernel", "embedded", "scheduler"]
 categories = ["no-std", "os", "embedded", "concurrency"]
 readme = "README.md"
-documentation = "https://docs.rs/chronos"
+documentation = "https://docs.rs/preemptive-threads"
 
 [dependencies]
 
