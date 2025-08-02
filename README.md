@@ -133,12 +133,12 @@ Hand-written x86_64 assembly preserves all callee-saved registers:
 
 ## Platform Support
 
-- **Supported**: x86_64 only (Intel macOS, Linux, Windows)
-- **Not Supported**: ARM64/aarch64 (Apple Silicon), RISC-V, other architectures
-- **Planned**: aarch64, RISC-V support in future versions
-- **Targets**: Userland testing, OS kernels, embedded x86_64 systems
+- x86_64 (Intel/AMD 64-bit)
+- Linux, macOS, Windows
+- No ARM64/aarch64 support
+- No RISC-V support
 
-⚠️ **Note**: This library uses hand-written x86_64 assembly and will not compile on other architectures.
+This library uses hand-written x86_64 assembly and will not compile on other architectures.
 
 ## Limitations
 
@@ -150,37 +150,23 @@ Hand-written x86_64 assembly preserves all callee-saved registers:
 
 ## Quick Start
 
-### 🚀 One-Command Demo
+### One-Command Demo
 ```bash
-# Run the complete test suite and demos
 ./test_runner.sh
 ```
 
-### 🎯 Individual Demos
+### Individual Demos
 ```bash
-# Interactive demo with colored output
 cargo run --bin interactive_demo --features std
-
-# Performance benchmarks
 cargo run --bin benchmark --features std
-
-# Basic cooperative threading
 cargo run --bin example --features std
-
-# Stress test with 10 threads
 cargo run --bin stress_test --features std
-
-# Priority scheduling demo
 cargo run --bin priority_test --features std
-
-# Preemptive scheduling test
 cargo run --bin test_preemption --features std
-
-# Stack overflow detection
 cargo run --bin stack_overflow_test --features std
 ```
 
-### 🧪 Testing & Development
+### Testing & Development
 ```bash
 # Run unit tests
 cargo test
@@ -221,40 +207,39 @@ cargo doc --no-deps --open
 
 ## Production Readiness
 
-### ✅ Strengths
-- **Robust error handling**: No panics, Result-based API
-- **Memory safety**: Stack overflow detection, bounds checking
-- **Well-tested**: Comprehensive unit tests
-- **Clean architecture**: Modular design, clear separation of concerns
-- **Performance**: Highly optimized context switching
-- **Documentation**: Code is well-documented
+### Strengths
+- Robust error handling with Result-based API
+- Memory safety with stack overflow detection
+- Comprehensive unit tests
+- Modular design with clear separation of concerns
+- Highly optimized context switching
+- Well-documented code
 
-### ⚠️ Limitations
-- **Platform support**: Currently x86_64 only
-- **Single-core**: No SMP/multi-core support
-- **Thread count**: Limited to 32 threads
-- **Preemption**: Linux-only (macOS lacks SIGALRM support)
-- **No thread-local storage**: Simplified design
-- **Basic scheduling**: No advanced algorithms (CFS, etc.)
-## Architecture for OS Integration
+### Limitations
+- x86_64 only
+- Single-core operation
+- Maximum 32 threads
+- Linux-only preemption
+- No thread-local storage
+- Basic scheduling algorithms
+## Use Cases
 
-This library is designed for integration into:
+Designed for integration into:
+- Hobby OS kernels
+- Embedded runtimes  
+- Hypervisors
+- Real-time systems
 
-1. **Hobby OS Kernels**: Replace std::thread with kernel thread primitives
-2. **Embedded Runtimes**: Lightweight threading for microcontrollers  
-3. **Hypervisors**: Guest thread scheduling
-4. **Real-time Systems**: Deterministic thread switching
+The no_std design ensures minimal dependencies and full control over memory layout and timing behavior.
 
-The `#![no_std]` design ensures minimal dependencies and full control over memory layout and timing behavior.
-
-**recommended for:**
+Recommended for:
 - Embedded systems with known constraints
 - Educational operating systems
 - Research projects
 - Systems requiring deterministic behavior
 
-**Not recommended for:**
+Not recommended for:
 - General-purpose application development
 - Multi-core systems
-- Applications requiring > 32 threads
+- Applications requiring more than 32 threads
 - Systems needing full POSIX thread compatibility
