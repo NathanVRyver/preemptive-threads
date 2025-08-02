@@ -4,11 +4,22 @@ pub struct Preemption {
 }
 
 #[cfg(target_os = "linux")]
+impl Default for Preemption {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(target_os = "linux")]
 impl Preemption {
     pub const fn new() -> Self {
         Preemption { enabled: false }
     }
 
+    /// # Safety
+    /// This function sets up signal handlers and timer interrupts which can affect
+    /// the entire process. Only one instance should manage preemption at a time.
+    /// The caller must ensure thread safety when accessing the global scheduler.
     pub unsafe fn enable(&mut self, interval_us: u64) {
         extern "C" {
             fn signal(sig: i32, handler: extern "C" fn(i32)) -> i32;
@@ -48,6 +59,9 @@ impl Preemption {
         self.enabled = true;
     }
 
+    /// # Safety
+    /// This function modifies process-wide timer settings. The caller must ensure
+    /// no other code depends on SIGALRM or ITIMER_REAL functionality.
     pub unsafe fn disable(&mut self) {
         if !self.enabled {
             return;
