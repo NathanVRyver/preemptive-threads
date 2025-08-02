@@ -1,7 +1,4 @@
 #[cfg(target_os = "linux")]
-use core::mem;
-
-#[cfg(target_os = "linux")]
 pub struct Preemption {
     enabled: bool,
 }
@@ -100,7 +97,7 @@ extern "C" fn timer_handler(_sig: i32) {
             if let Some(next_id) = scheduler.schedule() {
                 if current_id != next_id {
                     scheduler.set_current_thread(Some(next_id));
-                    scheduler.switch_context(current_id, next_id);
+                    let _ = scheduler.switch_context(current_id, next_id);
                 }
             }
         }
@@ -117,6 +114,7 @@ impl Default for Preemption {
     }
 }
 
+#[cfg(not(target_os = "linux"))]
 impl Preemption {
     pub const fn new() -> Self {
         Preemption
@@ -125,6 +123,7 @@ impl Preemption {
     /// # Safety
     /// Enables timer-based preemption. May affect signal handlers.
     pub unsafe fn enable(&mut self, _interval_us: u64) {}
+    
     /// # Safety
     /// Disables timer-based preemption. May affect signal handlers.
     pub unsafe fn disable(&mut self) {}
