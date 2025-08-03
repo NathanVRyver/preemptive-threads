@@ -21,6 +21,10 @@ impl Preemption {
     /// the entire process. Only one instance should manage preemption at a time.
     /// The caller must ensure thread safety when accessing the global scheduler.
     pub unsafe fn enable(&mut self, interval_us: u64) {
+        if self.enabled {
+            return;
+        }
+
         extern "C" {
             fn signal(sig: i32, handler: extern "C" fn(i32)) -> i32;
             fn setitimer(which: i32, new_value: *const itimerval, old_value: *mut itimerval)
@@ -42,7 +46,14 @@ impl Preemption {
             it_value: timeval,
         }
 
-        signal(SIGALRM, timer_handler);
+        if interval_us == 0 {
+            return;
+        }
+
+        let result = signal(SIGALRM, timer_handler);
+        if result == -1 {
+            return;
+        }
 
         let timer = itimerval {
             it_interval: timeval {
@@ -55,8 +66,10 @@ impl Preemption {
             },
         };
 
-        setitimer(ITIMER_REAL, &timer, core::ptr::null_mut());
-        self.enabled = true;
+        let result = setitimer(ITIMER_REAL, &timer, core::ptr::null_mut());
+        if result == 0 {
+            self.enabled = true;
+        }
     }
 
     /// # Safety
@@ -104,6 +117,14 @@ impl Preemption {
 
 #[cfg(target_os = "linux")]
 extern "C" fn timer_handler(_sig: i32) {
+    use core::sync::atomic::{AtomicBool, Ordering};
+    
+    static IN_HANDLER: AtomicBool = AtomicBool::new(false);
+    
+    if IN_HANDLER.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    
     unsafe {
         let scheduler = crate::scheduler::SCHEDULER.get();
 
@@ -116,6 +137,8 @@ extern "C" fn timer_handler(_sig: i32) {
             }
         }
     }
+    
+    IN_HANDLER.store(false, Ordering::SeqCst);
 }
 
 #[cfg(not(target_os = "linux"))]
