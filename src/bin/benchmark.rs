@@ -1,6 +1,6 @@
-extern crate preemptive_mlthreading_rust;
+extern crate preemptive_threads;
 
-use preemptive_mlthreading_rust::{
+use preemptive_threads::{
     scheduler::SCHEDULER, sync::yield_thread, thread::ThreadContext,
 };
 
@@ -192,7 +192,7 @@ fn benchmark_runner() {
                     scheduler.set_current_thread(Some(next_id));
                     let dummy_context = core::mem::MaybeUninit::<ThreadContext>::uninit();
                     let to_thread = scheduler.get_thread(next_id).unwrap();
-                    preemptive_mlthreading_rust::context::switch_context(
+                    preemptive_threads::context::switch_context(
                         dummy_context.as_ptr() as *mut _,
                         &to_thread.context as *const _,
                     );

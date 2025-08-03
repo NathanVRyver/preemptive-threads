@@ -27,22 +27,21 @@ fn main() {
 
         // Spawn two threads with equal priority
         scheduler
-            .spawn_thread(&mut STACK1, worker_thread_1, 1)
+            .spawn_thread((&raw mut STACK1).as_mut().unwrap(), worker_thread_1, 1)
             .unwrap();
         scheduler
-            .spawn_thread(&mut STACK2, worker_thread_2, 1)
+            .spawn_thread((&raw mut STACK2).as_mut().unwrap(), worker_thread_2, 1)
             .unwrap();
 
-        // Simple scheduler loop
-        while let Some(next_id) = scheduler.schedule() {
-            if let Some(thread) = scheduler.get_thread(next_id) {
-                if thread.is_runnable() {
-                    scheduler.set_current_thread(Some(next_id));
-                    // In a real implementation, you'd switch to this thread
-                    // For this example, we'll just yield immediately
-                    yield_thread();
-                }
-            }
+        // Start the first thread
+        if let Some(first_thread) = scheduler.schedule() {
+            scheduler.set_current_thread(Some(first_thread));
+            let dummy_context = core::mem::MaybeUninit::<preemptive_threads::thread::ThreadContext>::uninit();
+            let to_thread = scheduler.get_thread(first_thread).unwrap();
+            preemptive_threads::context::switch_context(
+                dummy_context.as_ptr() as *mut _,
+                &to_thread.context as *const _,
+            );
         }
     }
 

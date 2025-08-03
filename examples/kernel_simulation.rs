@@ -5,9 +5,9 @@
 //! - System call handling
 //! - Interrupt-like preemption
 
-extern crate preemptive_mlthreading_rust;
+extern crate preemptive_threads;
 
-use preemptive_mlthreading_rust::{
+use preemptive_threads::{
     preemption::Preemption, scheduler::SCHEDULER, sync::yield_thread, thread::ThreadContext,
 };
 
@@ -136,7 +136,7 @@ fn process_1() {
 }
 
 fn process_2() {
-    for i in 0..6 {
+    for _i in 0..6 {
         syscall_print(2, b"Background service running\n");
 
         // Simulate background work
@@ -199,20 +199,20 @@ fn main() {
         // Kernel scheduler loop
         let mut scheduler_iterations = 0;
         loop {
-            unsafe {
-                SYSTEM_TICK += 1;
-            }
+            SYSTEM_TICK += 1;
 
             if let Some(next_id) = scheduler.schedule() {
-                if let Some(thread) = scheduler.get_thread(next_id) {
-                    if thread.is_runnable() {
-                        scheduler.set_current_thread(Some(next_id));
-                        let dummy_context = core::mem::MaybeUninit::<ThreadContext>::uninit();
-                        preemptive_mlthreading_rust::context::switch_context(
-                            dummy_context.as_ptr() as *mut _,
-                            &thread.context as *const _,
-                        );
-                    }
+                let is_runnable = scheduler.get_thread(next_id)
+                    .map_or(false, |t| t.is_runnable());
+                
+                if is_runnable {
+                    scheduler.set_current_thread(Some(next_id));
+                    let thread_context = scheduler.get_thread(next_id).unwrap();
+                    let dummy_context = core::mem::MaybeUninit::<ThreadContext>::uninit();
+                    preemptive_threads::context::switch_context(
+                        dummy_context.as_ptr() as *mut _,
+                        &thread_context.context as *const _,
+                    );
                 }
             } else {
                 break; // No more runnable processes

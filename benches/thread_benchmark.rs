@@ -1,6 +1,6 @@
-extern crate preemptive_mlthreading_rust;
+extern crate preemptive_threads;
 
-use preemptive_mlthreading_rust::{scheduler::SCHEDULER, sync::yield_thread};
+use preemptive_threads::{scheduler::SCHEDULER, sync::yield_thread};
 use std::time::Instant;
 
 static mut STACKS: [[u8; 32 * 1024]; 4] = [[0; 32 * 1024]; 4];
@@ -91,16 +91,16 @@ fn main() {
     println!("-------------------------");
     println!(
         "Thread struct size: {} bytes",
-        std::mem::size_of::<preemptive_mlthreading_rust::Thread>()
+        std::mem::size_of::<preemptive_threads::Thread>()
     );
     println!(
         "Scheduler overhead: ~{} KB",
-        (std::mem::size_of::<preemptive_mlthreading_rust::Scheduler>() + 1023) / 1024
+        (std::mem::size_of::<preemptive_threads::Scheduler>() + 1023) / 1024
     );
     println!("Stack size per thread: {} KB", 32);
     println!(
         "Total for 4 threads: ~{} KB",
-        4 * 32 + (std::mem::size_of::<preemptive_mlthreading_rust::Scheduler>() + 1023) / 1024
+        4 * 32 + (std::mem::size_of::<preemptive_threads::Scheduler>() + 1023) / 1024
     );
 
     println!("\n=== Benchmarks Complete ===\n");

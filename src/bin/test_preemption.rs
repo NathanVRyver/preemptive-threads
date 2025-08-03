@@ -1,6 +1,6 @@
-extern crate preemptive_mlthreading_rust;
+extern crate preemptive_threads;
 
-use preemptive_mlthreading_rust::{
+use preemptive_threads::{
     preemption::Preemption, scheduler::SCHEDULER, thread::ThreadContext,
 };
 
@@ -57,7 +57,7 @@ fn main() {
             scheduler.set_current_thread(Some(first_thread));
             let dummy_context = core::mem::MaybeUninit::<ThreadContext>::uninit();
             let to_thread = scheduler.get_thread(first_thread).unwrap();
-            preemptive_mlthreading_rust::context::switch_context(
+            preemptive_threads::context::switch_context(
                 dummy_context.as_ptr() as *mut _,
                 &to_thread.context as *const _,
             );

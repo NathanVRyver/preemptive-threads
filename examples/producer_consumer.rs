@@ -5,9 +5,9 @@
 //! - Shared data structures
 //! - Work queue simulation
 
-extern crate preemptive_mlthreading_rust;
+extern crate preemptive_threads;
 
-use preemptive_mlthreading_rust::{
+use preemptive_threads::{
     scheduler::SCHEDULER, sync::yield_thread, thread::ThreadContext,
 };
 
@@ -169,7 +169,7 @@ fn main() {
                     if thread.is_runnable() {
                         scheduler.set_current_thread(Some(next_id));
                         let dummy_context = core::mem::MaybeUninit::<ThreadContext>::uninit();
-                        preemptive_mlthreading_rust::context::switch_context(
+                        preemptive_threads::context::switch_context(
                             dummy_context.as_ptr() as *mut _,
                             &thread.context as *const _,
                         );
