@@ -17,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Preemptive scheduling support (Linux only via SIGALRM)
 - Comprehensive error handling without panics
 - Thread join functionality
-- Example binaries demonstrating various use cases
 - Performance benchmarks and production readiness assessment
 
 ### Features
