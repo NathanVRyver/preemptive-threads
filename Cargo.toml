@@ -1,6 +1,6 @@
 [package]
 name = "preemptive-threads"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Nathan Ryver <tantaouisoftware@gmail.com>"]
 description = "A no_std preemptive multithreading library built from scratch for OS kernels and embedded systems"
