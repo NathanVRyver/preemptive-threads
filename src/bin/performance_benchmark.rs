@@ -1,7 +1,7 @@
-extern crate preemptive_mlthreading_rust;
+extern crate preemptive_threads;
 
-use preemptive_mlthreading_rust::{scheduler::SCHEDULER, sync::yield_thread};
-use std::time::{Duration, Instant};
+use preemptive_threads::{scheduler::SCHEDULER, sync::yield_thread};
+use std::time::Instant;
 
 static mut STACK1: [u8; 64 * 1024] = [0; 64 * 1024];
 static mut STACK2: [u8; 64 * 1024] = [0; 64 * 1024];
@@ -64,7 +64,7 @@ fn main() {
                         // First thread
                         scheduler.set_current_thread(Some(next_id));
                         // Simulate initial context
-                        let mut dummy_context = core::mem::MaybeUninit::uninit();
+                        let mut dummy_context = core::mem::MaybeUninit::<preemptive_threads::thread::ThreadContext>::uninit();
                         scheduler.switch_context(0, next_id).ok();
                     }
                 }
