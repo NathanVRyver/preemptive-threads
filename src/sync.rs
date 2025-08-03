@@ -18,12 +18,14 @@ pub fn yield_thread() {
 pub fn exit_thread() -> ! {
     unsafe {
         let scheduler = SCHEDULER.get();
-        scheduler.exit_current_thread();
+        
+        if let Some(current_id) = scheduler.get_current_thread() {
+            scheduler.exit_current_thread();
 
-        if let Some(next_id) = scheduler.schedule() {
-            let current_id = scheduler.get_current_thread().unwrap_or(0);
-            scheduler.set_current_thread(Some(next_id));
-            let _ = scheduler.switch_context(current_id, next_id);
+            if let Some(next_id) = scheduler.schedule() {
+                scheduler.set_current_thread(Some(next_id));
+                let _ = scheduler.switch_context(current_id, next_id);
+            }
         }
     }
 
