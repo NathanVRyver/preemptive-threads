@@ -83,6 +83,30 @@ impl Thread {
             let stack_ptr = stack_ptr.sub(1);
             *stack_ptr = 0;
 
+            let stack_ptr = stack_ptr.sub(1);
+            *stack_ptr = self.entry_point as usize as u64;
+
+            let stack_ptr = stack_ptr.sub(1);
+            *stack_ptr = 0;
+
+            let stack_ptr = stack_ptr.sub(1);
+            *stack_ptr = 0;
+
+            let stack_ptr = stack_ptr.sub(1);
+            *stack_ptr = 0;
+
+            let stack_ptr = stack_ptr.sub(1);
+            *stack_ptr = 0;
+
+            let stack_ptr = stack_ptr.sub(1);
+            *stack_ptr = 0;
+
+            let stack_ptr = stack_ptr.sub(1);
+            *stack_ptr = 0;
+
+            let stack_ptr = stack_ptr.sub(1);
+            *stack_ptr = 0x202;
+
             self.context.rsp = stack_ptr as u64;
             self.context.rip = thread_entry as usize as u64;
         }
@@ -101,9 +125,18 @@ impl Thread {
 }
 
 extern "C" fn thread_entry() {
+    unsafe {
+        let scheduler = crate::scheduler::SCHEDULER.get();
+        if let Some(current_id) = scheduler.get_current_thread() {
+            if let Some(thread) = scheduler.get_thread(current_id) {
+                (thread.entry_point)();
+            }
+        }
+    }
     crate::sync::exit_thread();
 }
 
 extern "C" fn thread_wrapper() -> ! {
+    thread_entry();
     crate::sync::exit_thread();
 }
