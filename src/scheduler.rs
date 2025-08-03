@@ -237,10 +237,16 @@ impl Scheduler {
     }
 
     pub fn get_thread(&self, thread_id: ThreadId) -> Option<&Thread> {
+        if thread_id >= MAX_THREADS {
+            return None;
+        }
         self.threads[thread_id].as_ref()
     }
 
     pub fn get_thread_mut(&mut self, thread_id: ThreadId) -> Option<&mut Thread> {
+        if thread_id >= MAX_THREADS {
+            return None;
+        }
         self.threads[thread_id].as_mut()
     }
 
