@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2025-01-04
+
+### Added
+- Lock-free atomic scheduler with per-priority circular buffers
+- Full CPU context saving including FPU/SSE state via FXSAVE/FXRSTOR
+- Enhanced stack protection with guard pages and canary values
+- Signal-safe preemption handler that defers scheduling outside signal context
+- Safe API abstractions including ThreadBuilder, Mutex, and ThreadPool
+- Comprehensive error types for better error handling
+- Stack watermark tracking for high water mark analysis
+
+### Changed
+- Replaced global mutable singleton with thread-safe atomic operations
+- Replaced O(n²) scheduling algorithm with O(1) priority queue
+- Improved context switching to save/restore RFLAGS correctly
+- Tests no longer use unsafe transmute
+
+### Fixed
+- Race conditions in global scheduler access
+- Memory safety issues with unsynchronized access
+- Signal handler now only uses async-signal-safe operations
+- Context switching now preserves full CPU state
+- Stack overflow detection now checks entire guard region
+
 ## [0.1.1] - 2025-01-04
 
 ### Fixed
