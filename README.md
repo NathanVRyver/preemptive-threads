@@ -12,9 +12,8 @@ A `#![no_std]` preemptive multithreading library for Rust.
 
 ## Installation
 
-```toml
-[dependencies]
-preemptive-threads = "0.1.0"
+``` bash
+cargo install preemptive-threads
 ```
 
 ## Usage
