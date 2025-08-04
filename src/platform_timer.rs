@@ -6,6 +6,10 @@ static PREEMPTION_PENDING: AtomicBool = AtomicBool::new(false);
 static PREEMPTION_COUNT: AtomicU64 = AtomicU64::new(0);
 
 /// Signal handler that just sets a flag - actual scheduling happens outside signal context
+/// 
+/// # Safety
+/// This function is called from signal context and only uses async-signal-safe operations.
+/// It only modifies atomic variables and performs no memory allocation or complex operations.
 #[cfg(target_os = "linux")]
 pub unsafe extern "C" fn signal_safe_handler(_sig: i32) {
     // Only use async-signal-safe operations here
@@ -31,7 +35,6 @@ pub fn get_preemption_count() -> u64 {
 /// Platform-specific timer implementation for Linux using timerfd
 #[cfg(target_os = "linux")]
 pub mod linux_timer {
-    use super::*;
     
     pub fn init_preemption_timer(_interval_ms: u64) -> Result<(), &'static str> {
         // For a complete implementation, you would:
