@@ -64,7 +64,9 @@ fn main() {
                         // First thread
                         scheduler.set_current_thread(Some(next_id));
                         // Simulate initial context
-                        let mut dummy_context = core::mem::MaybeUninit::<preemptive_threads::thread::ThreadContext>::uninit();
+                        let mut dummy_context = core::mem::MaybeUninit::<
+                            preemptive_threads::thread::ThreadContext,
+                        >::uninit();
                         scheduler.switch_context(0, next_id).ok();
                     }
                 }

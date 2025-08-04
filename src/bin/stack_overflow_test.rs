@@ -1,8 +1,6 @@
 extern crate preemptive_threads;
 
-use preemptive_threads::{
-    scheduler::SCHEDULER, sync::yield_thread, thread::ThreadContext,
-};
+use preemptive_threads::{scheduler::SCHEDULER, sync::yield_thread, thread::ThreadContext};
 
 static mut STACK1: [u8; 4 * 1024] = [0; 4 * 1024];
 

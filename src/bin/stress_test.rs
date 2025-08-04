@@ -1,8 +1,6 @@
 extern crate preemptive_threads;
 
-use preemptive_threads::{
-    scheduler::SCHEDULER, sync::yield_thread, thread::ThreadContext,
-};
+use preemptive_threads::{scheduler::SCHEDULER, sync::yield_thread, thread::ThreadContext};
 
 const NUM_THREADS: usize = 10;
 static mut STACKS: [[u8; 16 * 1024]; NUM_THREADS] = [[0; 16 * 1024]; NUM_THREADS];

@@ -118,13 +118,13 @@ impl Preemption {
 #[cfg(target_os = "linux")]
 extern "C" fn timer_handler(_sig: i32) {
     use core::sync::atomic::{AtomicBool, Ordering};
-    
+
     static IN_HANDLER: AtomicBool = AtomicBool::new(false);
-    
+
     if IN_HANDLER.swap(true, Ordering::SeqCst) {
         return;
     }
-    
+
     unsafe {
         let scheduler = crate::scheduler::SCHEDULER.get();
 
@@ -137,7 +137,7 @@ extern "C" fn timer_handler(_sig: i32) {
             }
         }
     }
-    
+
     IN_HANDLER.store(false, Ordering::SeqCst);
 }
 
@@ -160,7 +160,7 @@ impl Preemption {
     /// # Safety
     /// Enables timer-based preemption. May affect signal handlers.
     pub unsafe fn enable(&mut self, _interval_us: u64) {}
-    
+
     /// # Safety
     /// Disables timer-based preemption. May affect signal handlers.
     pub unsafe fn disable(&mut self) {}

@@ -1,4 +1,3 @@
-
 /// Full CPU context including FPU/SSE/AVX state
 #[repr(C, align(64))]
 pub struct FullThreadContext {
@@ -11,13 +10,19 @@ pub struct FullThreadContext {
     pub r14: u64,
     pub r15: u64,
     pub rflags: u64,
-    
+
     /// FPU/SSE/AVX state (512 bytes for XSAVE area)
     pub xsave_area: [u8; 512],
-    
+
     /// MXCSR register for SSE state
     pub mxcsr: u32,
     pub mxcsr_mask: u32,
+}
+
+impl Default for FullThreadContext {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl FullThreadContext {
@@ -41,28 +46,28 @@ impl FullThreadContext {
 /// Check CPU features at runtime
 pub fn check_cpu_features() -> CpuFeatures {
     let mut features = CpuFeatures::default();
-    
+
     unsafe {
         // Check for XSAVE support
         let result = core::arch::x86_64::__cpuid_count(1, 0);
         features.xsave = (result.ecx & (1 << 26)) != 0;
         features.avx = (result.ecx & (1 << 28)) != 0;
         features.fma = (result.ecx & (1 << 12)) != 0;
-        
+
         // Check for AVX2
         let result = core::arch::x86_64::__cpuid_count(7, 0);
         features.avx2 = (result.ebx & (1 << 5)) != 0;
-        
+
         // Check for AVX-512
         features.avx512f = (result.ebx & (1 << 16)) != 0;
-        
+
         // Get XSAVE feature mask
         if features.xsave {
             let result = core::arch::x86_64::__cpuid_count(0xD, 0);
             features.xsave_mask = ((result.edx as u64) << 32) | (result.eax as u64);
         }
     }
-    
+
     features
 }
 
@@ -93,10 +98,16 @@ pub fn init_cpu_features() {
 }
 
 /// Full context switch with all CPU state
+/// 
+/// # Safety
+/// Caller must ensure valid thread context pointers and proper synchronization.
 #[cfg(target_arch = "x86_64")]
 #[unsafe(naked)]
 #[no_mangle]
-pub unsafe extern "C" fn switch_context_full(from: *mut FullThreadContext, to: *const FullThreadContext) {
+pub unsafe extern "C" fn switch_context_full(
+    from: *mut FullThreadContext,
+    to: *const FullThreadContext,
+) {
     core::arch::naked_asm!(
         "
         # Save callee-saved registers
@@ -156,10 +167,16 @@ pub unsafe extern "C" fn switch_context_full(from: *mut FullThreadContext, to: *
 }
 
 /// Simple context switch (enhanced version with proper RFLAGS handling)
+/// 
+/// # Safety
+/// Caller must ensure valid thread context pointers and proper synchronization.
 #[cfg(target_arch = "x86_64")]
 #[unsafe(naked)]
 #[no_mangle]
-pub unsafe extern "C" fn switch_context_simple(from: *mut crate::thread::ThreadContext, to: *const crate::thread::ThreadContext) {
+pub unsafe extern "C" fn switch_context_simple(
+    from: *mut crate::thread::ThreadContext,
+    to: *const crate::thread::ThreadContext,
+) {
     core::arch::naked_asm!(
         "
         # Save callee-saved registers in correct order

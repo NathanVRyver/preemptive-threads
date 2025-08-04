@@ -9,17 +9,18 @@ pub struct ThreadHandle {
 }
 
 impl ThreadHandle {
+    #[allow(dead_code)]
     fn new(id: ThreadId) -> Self {
         Self { id, joined: false }
     }
-    
+
     /// Join this thread, waiting for it to complete
     pub fn join(mut self) -> ThreadResult<()> {
         self.joined = true;
         // TODO: Implement actual join logic
         Ok(())
     }
-    
+
     /// Get the thread ID
     pub fn id(&self) -> ThreadId {
         self.id
@@ -43,39 +44,45 @@ pub struct ThreadBuilder<'a> {
     _phantom: PhantomData<&'a ()>,
 }
 
+impl<'a> Default for ThreadBuilder<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> ThreadBuilder<'a> {
     /// Create a new thread builder
     pub fn new() -> Self {
         Self {
             stack_size: 64 * 1024, // 64KB default
-            priority: 5, // Medium priority
+            priority: 5,           // Medium priority
             name: None,
             _phantom: PhantomData,
         }
     }
-    
+
     /// Set stack size (must be at least 16KB)
     pub fn stack_size(mut self, size: usize) -> Self {
         assert!(size >= 16 * 1024, "Stack size must be at least 16KB");
         self.stack_size = size;
         self
     }
-    
+
     /// Set thread priority (0-7, higher is more priority)
     pub fn priority(mut self, priority: u8) -> Self {
         assert!(priority < 8, "Priority must be 0-7");
         self.priority = priority;
         self
     }
-    
+
     /// Set thread name for debugging
     pub fn name(mut self, name: &'a str) -> Self {
         self.name = Some(name);
         self
     }
-    
+
     /// Spawn the thread with a closure
-    /// 
+    ///
     /// This is the safe API that doesn't require users to manage stacks manually
     pub fn spawn<F>(self, _f: F) -> ThreadResult<ThreadHandle>
     where
@@ -89,8 +96,15 @@ impl<'a> ThreadBuilder<'a> {
 
 /// Thread-local storage key
 pub struct ThreadLocal<T> {
+    #[allow(dead_code)]
     key: usize,
     _phantom: PhantomData<T>,
+}
+
+impl<T> Default for ThreadLocal<T> {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<T> ThreadLocal<T> {
@@ -102,13 +116,13 @@ impl<T> ThreadLocal<T> {
             _phantom: PhantomData,
         }
     }
-    
+
     /// Get the value for the current thread
     pub fn get(&self) -> Option<&T> {
         // TODO: Implement TLS lookup
         None
     }
-    
+
     /// Set the value for the current thread
     pub fn set(&self, _value: T) {
         // TODO: Implement TLS storage
@@ -124,14 +138,17 @@ pub struct ThreadPool {
 impl ThreadPool {
     /// Create a new thread pool
     pub fn new(max_threads: usize) -> Self {
-        assert!(max_threads > 0 && max_threads <= 32, "Thread pool size must be 1-32");
-        
+        assert!(
+            max_threads > 0 && max_threads <= 32,
+            "Thread pool size must be 1-32"
+        );
+
         Self {
             max_threads,
             active_threads: 0,
         }
     }
-    
+
     /// Execute a task in the thread pool
     pub fn execute<F>(&mut self, _task: F) -> ThreadResult<()>
     where
@@ -140,16 +157,16 @@ impl ThreadPool {
         if self.active_threads >= self.max_threads {
             return Err(ThreadError::SchedulerFull);
         }
-        
+
         // TODO: Implement actual thread pool execution
         Err(ThreadError::NotImplemented)
     }
-    
+
     /// Get the number of active threads
     pub fn active_count(&self) -> usize {
         self.active_threads
     }
-    
+
     /// Shut down the thread pool, waiting for all threads to complete
     pub fn shutdown(self) {
         // TODO: Implement graceful shutdown
@@ -173,30 +190,38 @@ impl<T> Mutex<T> {
             locked: core::sync::atomic::AtomicBool::new(false),
         }
     }
-    
+
     /// Lock the mutex
     pub fn lock(&self) -> MutexGuard<T> {
         // Spin lock implementation
-        while self.locked.compare_exchange_weak(
-            false,
-            true,
-            core::sync::atomic::Ordering::Acquire,
-            core::sync::atomic::Ordering::Relaxed,
-        ).is_err() {
+        while self
+            .locked
+            .compare_exchange_weak(
+                false,
+                true,
+                core::sync::atomic::Ordering::Acquire,
+                core::sync::atomic::Ordering::Relaxed,
+            )
+            .is_err()
+        {
             core::hint::spin_loop();
         }
-        
+
         MutexGuard { mutex: self }
     }
-    
+
     /// Try to lock the mutex
     pub fn try_lock(&self) -> Option<MutexGuard<T>> {
-        if self.locked.compare_exchange(
-            false,
-            true,
-            core::sync::atomic::Ordering::Acquire,
-            core::sync::atomic::Ordering::Relaxed,
-        ).is_ok() {
+        if self
+            .locked
+            .compare_exchange(
+                false,
+                true,
+                core::sync::atomic::Ordering::Acquire,
+                core::sync::atomic::Ordering::Relaxed,
+            )
+            .is_ok()
+        {
             Some(MutexGuard { mutex: self })
         } else {
             None
@@ -211,7 +236,7 @@ pub struct MutexGuard<'a, T> {
 
 impl<'a, T> core::ops::Deref for MutexGuard<'a, T> {
     type Target = T;
-    
+
     fn deref(&self) -> &Self::Target {
         unsafe { &*self.mutex.data.get() }
     }
@@ -225,7 +250,9 @@ impl<'a, T> core::ops::DerefMut for MutexGuard<'a, T> {
 
 impl<'a, T> Drop for MutexGuard<'a, T> {
     fn drop(&mut self) {
-        self.mutex.locked.store(false, core::sync::atomic::Ordering::Release);
+        self.mutex
+            .locked
+            .store(false, core::sync::atomic::Ordering::Release);
     }
 }
 

@@ -13,9 +13,9 @@ pub struct StackGuard {
 impl Default for StackGuard {
     fn default() -> Self {
         Self {
-            guard_size: 4096,  // 1 page
+            guard_size: 4096, // 1 page
             canary_value: 0xDEADBEEFCAFEBABE,
-            red_zone: 128,  // x86_64 ABI red zone
+            red_zone: 128, // x86_64 ABI red zone
         }
     }
 }
@@ -36,31 +36,34 @@ pub struct ProtectedStack {
 
 impl ProtectedStack {
     /// Create a new protected stack
-    /// 
+    ///
     /// # Safety
     /// Caller must provide a valid memory region
     pub unsafe fn new(memory: &'static mut [u8], guard: StackGuard) -> Self {
         let base = memory.as_mut_ptr();
         let total_size = memory.len();
-        
+
         // Ensure we have enough space for guards
-        assert!(total_size > guard.guard_size * 2 + 4096, "Stack too small for guards");
-        
+        assert!(
+            total_size > guard.guard_size * 2 + 4096,
+            "Stack too small for guards"
+        );
+
         let stack_size = total_size - guard.guard_size * 2;
-        
+
         // Initialize guard pages with canary pattern
         let guard_start = base;
         let _guard_end = base.add(guard.guard_size);
-        
+
         // Fill bottom guard with canary values
         let canary_ptr = guard_start as *mut u64;
         for i in 0..(guard.guard_size / 8) {
             canary_ptr.add(i).write_volatile(guard.canary_value);
         }
-        
+
         // Initialize watermark to stack top
         let stack_top = base.add(total_size - guard.guard_size) as u64;
-        
+
         Self {
             base,
             total_size,
@@ -69,7 +72,7 @@ impl ProtectedStack {
             watermark: AtomicU64::new(stack_top),
         }
     }
-    
+
     /// Get usable stack memory
     pub fn get_stack(&self) -> &'static mut [u8] {
         unsafe {
@@ -77,62 +80,63 @@ impl ProtectedStack {
             core::slice::from_raw_parts_mut(stack_start, self.stack_size)
         }
     }
-    
+
     /// Check for stack overflow using multiple methods
     pub fn check_overflow(&self) -> StackStatus {
         unsafe {
             // Method 1: Check canary values
             let canary_start = self.base as *const u64;
             let canary_count = self.guard.guard_size / 8;
-            
+
             let mut corrupted_canaries = 0;
             for i in 0..canary_count {
                 if canary_start.add(i).read_volatile() != self.guard.canary_value {
                     corrupted_canaries += 1;
                 }
             }
-            
+
             if corrupted_canaries > 0 {
                 return StackStatus::Corrupted {
                     corrupted_bytes: corrupted_canaries * 8,
                     location: StackCorruption::GuardPage,
                 };
             }
-            
+
             // Method 2: Check current stack pointer
             let current_sp = get_stack_pointer();
             let stack_bottom = self.base.add(self.guard.guard_size) as u64;
-            
+
             if current_sp < stack_bottom {
                 return StackStatus::Overflow {
                     overflow_bytes: (stack_bottom - current_sp) as usize,
                 };
             }
-            
+
             // Method 3: Update and check watermark
             self.watermark.fetch_min(current_sp, Ordering::Relaxed);
             let high_water_mark = self.watermark.load(Ordering::Relaxed);
-            let used = (self.base.add(self.total_size - self.guard.guard_size) as u64) - high_water_mark;
-            
+            let used =
+                (self.base.add(self.total_size - self.guard.guard_size) as u64) - high_water_mark;
+
             if used as usize > self.stack_size - self.guard.red_zone {
                 return StackStatus::NearOverflow {
                     bytes_remaining: self.stack_size - used as usize,
                 };
             }
-            
+
             StackStatus::Ok {
                 used_bytes: used as usize,
                 free_bytes: self.stack_size - used as usize,
             }
         }
     }
-    
+
     /// Get detailed stack statistics
     pub fn get_stats(&self) -> StackStats {
         let current_sp = get_stack_pointer();
         let stack_top = unsafe { self.base.add(self.total_size - self.guard.guard_size) as u64 };
         let high_water_mark = self.watermark.load(Ordering::Relaxed);
-        
+
         StackStats {
             total_size: self.total_size,
             usable_size: self.stack_size,
@@ -197,7 +201,7 @@ macro_rules! protected_stack {
         unsafe {
             $crate::stack_guard::ProtectedStack::new(
                 &mut STACK_MEMORY,
-                $crate::stack_guard::StackGuard::default()
+                $crate::stack_guard::StackGuard::default(),
             )
         }
     }};

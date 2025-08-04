@@ -18,7 +18,7 @@ pub fn yield_thread() {
 pub fn exit_thread() -> ! {
     unsafe {
         let scheduler = SCHEDULER.get();
-        
+
         if let Some(current_id) = scheduler.get_current_thread() {
             scheduler.exit_current_thread();
 
@@ -31,8 +31,10 @@ pub fn exit_thread() -> ! {
 
     loop {
         #[cfg(target_arch = "x86_64")]
-        unsafe { core::arch::asm!("hlt") }
-        
+        unsafe {
+            core::arch::asm!("hlt")
+        }
+
         #[cfg(not(target_arch = "x86_64"))]
         core::hint::spin_loop();
     }

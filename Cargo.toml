@@ -12,6 +12,10 @@ readme = "README.md"
 documentation = "https://docs.rs/preemptive-threads"
 
 [dependencies]
+libc = { version = "0.2", optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
 
 [features]
 default = []
