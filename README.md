@@ -3,6 +3,7 @@
 A `#![no_std]` preemptive multithreading library for Rust, built from scratch for OS kernels and embedded systems.
 
 [![Crates.io](https://img.shields.io/crates/v/preemptive-threads)](https://crates.io/crates/preemptive-threads)
+[![Downloads](https://img.shields.io/crates/d/preemptive-threads)](https://crates.io/crates/preemptive-threads)
 [![Documentation](https://docs.rs/preemptive-threads/badge.svg)](https://docs.rs/preemptive-threads)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE)
 
@@ -29,11 +30,8 @@ A `#![no_std]` preemptive multithreading library for Rust, built from scratch fo
 
 ## Installation
 
-Add to your `Cargo.toml`:
-
-```toml
-[dependencies]
-preemptive-threads = "0.1.2"
+```bash
+cargo add preemptive-threads
 ```
 
 ## Quick Start
