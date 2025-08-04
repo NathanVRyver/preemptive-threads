@@ -4,6 +4,7 @@ pub mod atomic_scheduler;
 pub mod context;
 pub mod context_full;
 pub mod error;
+pub mod platform_timer;
 pub mod preemption;
 pub mod safe_api;
 pub mod scheduler;
@@ -28,7 +29,8 @@ fn panic(_info: &PanicInfo) -> ! {
 }
 
 pub use atomic_scheduler::{AtomicScheduler, ATOMIC_SCHEDULER};
-pub use error::{ThreadError, ThreadResult};
+pub use error::{ThreadError, ThreadResult};  
+pub use platform_timer::{init_preemption_timer, stop_preemption_timer, preemption_checkpoint};
 pub use safe_api::{
     exit_thread as safe_exit, yield_now, Mutex, MutexGuard, ThreadBuilder, ThreadHandle, ThreadPool,
 };
