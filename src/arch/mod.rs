@@ -3,7 +3,8 @@
 //! This module provides a unified interface for architecture-specific operations
 //! that need to be implemented for each supported CPU architecture.
 
-use core::marker::PhantomData;
+// PhantomData import not needed yet
+// use core::marker::PhantomData;
 
 /// Architecture abstraction trait.
 ///

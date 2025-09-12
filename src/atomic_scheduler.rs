@@ -354,7 +354,7 @@ impl AtomicScheduler {
             return None;
         }
 
-        Some((*self.threads[thread_id].get()).assume_init_mut())
+        Some(unsafe { (*self.threads[thread_id].get()).assume_init_mut() })
     }
 
     pub fn exit_current_thread(&self) {
