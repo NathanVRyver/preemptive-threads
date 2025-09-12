@@ -26,10 +26,12 @@
 //! - Safe memory management for thread stacks and resources
 //! - Preemptive scheduling with configurable time slices
 
+pub mod arch;
 pub mod atomic_scheduler;
 pub mod context;
 pub mod context_full;
 pub mod error;
+pub mod kernel;
 pub mod platform_timer;
 pub mod preemption;
 pub mod safe_api;
