@@ -2,6 +2,30 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![forbid(missing_docs, unreachable_pub)]
 
+//! A `no_std` preemptive multithreading library built from scratch for OS kernels and embedded systems.
+//!
+//! This library provides preemptive multithreading capabilities without requiring the standard library,
+//! making it suitable for embedded systems, OS kernels, and other resource-constrained environments.
+//!
+//! # Features
+//!
+//! - `std-shim`: Enable compatibility layer for standard library
+//! - `x86_64`: Enable x86_64 architecture support  
+//! - `arm64`: Enable ARM64 architecture support
+//! - `riscv64`: Enable RISC-V 64-bit architecture support
+//! - `full-fpu`: Enable full floating point unit save/restore
+//! - `mmu`: Enable memory management unit features like guard pages
+//! - `work-stealing`: Enable work-stealing scheduler implementation
+//! - `hardened`: Enable security hardening features
+//!
+//! # Architecture
+//!
+//! The library is organized around several key abstractions:
+//! - Architecture-specific context switching and interrupt handling
+//! - Pluggable schedulers with different algorithms
+//! - Safe memory management for thread stacks and resources
+//! - Preemptive scheduling with configurable time slices
+
 pub mod atomic_scheduler;
 pub mod context;
 pub mod context_full;
