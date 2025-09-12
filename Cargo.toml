@@ -14,13 +14,14 @@ documentation = "https://docs.rs/preemptive-threads"
 
 [dependencies]
 portable-atomic = { version = "1.0", default-features = false }
-spin = { version = "0.9", default-features = false }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = { version = "0.2", default-features = false }
 
 [features]
 default = []
+std = []
 std-shim = []
 x86_64 = []
 arm64 = []
