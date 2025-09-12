@@ -2,6 +2,7 @@
 name = "preemptive-threads"
 version = "0.1.2"
 edition = "2021"
+rust-version = "1.70"
 authors = ["Nathan Ryver <tantaouisoftware@gmail.com>"]
 description = "A no_std preemptive multithreading library built from scratch for OS kernels and embedded systems"
 license = "MIT OR Apache-2.0"
@@ -12,13 +13,22 @@ readme = "README.md"
 documentation = "https://docs.rs/preemptive-threads"
 
 [dependencies]
+portable-atomic = { version = "1.0", default-features = false }
+spin = { version = "0.9", default-features = false }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = { version = "0.2", default-features = false }
 
 [features]
 default = []
-std = []
+std-shim = []
+x86_64 = []
+arm64 = []
+riscv64 = []
+full-fpu = []
+mmu = []
+work-stealing = []
+hardened = []
 
 [profile.dev]
 panic = "abort"
