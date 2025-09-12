@@ -33,7 +33,7 @@ impl SchedulerCell {
     /// Returns mutable reference to scheduler. Caller must ensure thread safety.
     #[allow(clippy::mut_from_ref)]
     pub unsafe fn get(&self) -> &mut Scheduler {
-        &mut *self.0.get()
+        unsafe { &mut *self.0.get() }
     }
 }
 

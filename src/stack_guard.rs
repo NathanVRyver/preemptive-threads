@@ -53,16 +53,18 @@ impl ProtectedStack {
 
         // Initialize guard pages with canary pattern
         let guard_start = base;
-        let _guard_end = base.add(guard.guard_size);
+        let _guard_end = unsafe { base.add(guard.guard_size) };
 
         // Fill bottom guard with canary values
         let canary_ptr = guard_start as *mut u64;
         for i in 0..(guard.guard_size / 8) {
-            canary_ptr.add(i).write_volatile(guard.canary_value);
+            unsafe {
+                canary_ptr.add(i).write_volatile(guard.canary_value);
+            }
         }
 
         // Initialize watermark to stack top
-        let stack_top = base.add(total_size - guard.guard_size) as u64;
+        let stack_top = unsafe { base.add(total_size - guard.guard_size) as u64 };
 
         Self {
             base,
