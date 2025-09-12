@@ -65,7 +65,7 @@ impl ThreadId {
     ///
     /// The caller must ensure that `id` is non-zero and unique.
     pub unsafe fn new_unchecked(id: usize) -> Self {
-        Self(core::num::NonZeroUsize::new_unchecked(id))
+        Self(unsafe { core::num::NonZeroUsize::new_unchecked(id) })
     }
     
     /// Get the raw ID value.
@@ -167,7 +167,7 @@ impl<A: Arch, S: Scheduler> Kernel<A, S> {
     /// # Returns
     ///
     /// Thread ID of the newly created thread, or an error if creation fails.
-    pub fn spawn<F>(&self, entry_point: F, stack_size: usize) -> Result<ThreadId, SpawnError>
+    pub fn spawn<F>(&self, _entry_point: F, _stack_size: usize) -> Result<ThreadId, SpawnError>
     where
         F: FnOnce() + Send + 'static,
     {
