@@ -3,6 +3,7 @@
 use crate::errors::ThreadError;
 use crate::security::{SecurityConfig, SecurityViolation, handle_security_violation};
 use portable_atomic::{AtomicU64, AtomicUsize, Ordering};
+use core::arch::asm;
 
 /// CFI protection implementation.
 pub struct CfiProtection {
@@ -136,7 +137,14 @@ pub struct ReturnAddressGuard {
 impl ReturnAddressGuard {
     /// Create new return address guard.
     pub fn new(expected_caller: *const ()) -> Self {
-        let return_address = get_return_address();
+        #[cfg(feature = "x86_64")]
+        let return_address = x86_64_cfi::get_return_address();
+        
+        #[cfg(feature = "arm64")]
+        let return_address = arm64_cfi::get_return_address();
+        
+        #[cfg(not(any(feature = "x86_64", feature = "arm64")))]
+        let return_address = generic_cfi::get_return_address();
         Self {
             saved_return_address: return_address,
             expected_caller,

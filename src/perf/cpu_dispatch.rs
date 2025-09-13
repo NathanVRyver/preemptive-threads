@@ -276,37 +276,37 @@ pub unsafe fn optimized_memset(dst: *mut u8, val: u8, len: usize) {
 #[cfg(feature = "x86_64")]
 unsafe fn x86_64_avx512_memcpy(dst: *mut u8, src: *const u8, len: usize) {
     // Real implementation would use AVX-512 instructions
-    generic_memcpy(dst, src, len);
+    unsafe { generic_memcpy(dst, src, len); }
 }
 
 #[cfg(feature = "x86_64")]
 unsafe fn x86_64_avx512_memset(dst: *mut u8, val: u8, len: usize) {
     // Real implementation would use AVX-512 instructions
-    generic_memset(dst, val, len);
+    unsafe { generic_memset(dst, val, len); }
 }
 
 #[cfg(feature = "x86_64")]
 unsafe fn x86_64_avx_memcpy(dst: *mut u8, src: *const u8, len: usize) {
     // Real implementation would use AVX instructions
-    generic_memcpy(dst, src, len);
+    unsafe { generic_memcpy(dst, src, len); }
 }
 
 #[cfg(feature = "x86_64")]
 unsafe fn x86_64_avx_memset(dst: *mut u8, val: u8, len: usize) {
     // Real implementation would use AVX instructions  
-    generic_memset(dst, val, len);
+    unsafe { generic_memset(dst, val, len); }
 }
 
 #[cfg(feature = "x86_64")]
 unsafe fn x86_64_sse_memcpy(dst: *mut u8, src: *const u8, len: usize) {
     // Real implementation would use SSE instructions
-    generic_memcpy(dst, src, len);
+    unsafe { generic_memcpy(dst, src, len); }
 }
 
 #[cfg(feature = "x86_64")]
 unsafe fn x86_64_sse_memset(dst: *mut u8, val: u8, len: usize) {
     // Real implementation would use SSE instructions
-    generic_memset(dst, val, len);
+    unsafe { generic_memset(dst, val, len); }
 }
 
 #[cfg(feature = "x86_64")]
@@ -318,49 +318,49 @@ fn x86_64_avx_hash(data: &[u8]) -> u64 {
 #[cfg(feature = "arm64")]
 unsafe fn arm64_sve2_memcpy(dst: *mut u8, src: *const u8, len: usize) {
     // Real implementation would use SVE2 instructions
-    generic_memcpy(dst, src, len);
+    unsafe { generic_memcpy(dst, src, len); }
 }
 
 #[cfg(feature = "arm64")]
 unsafe fn arm64_sve2_memset(dst: *mut u8, val: u8, len: usize) {
     // Real implementation would use SVE2 instructions
-    generic_memset(dst, val, len);
+    unsafe { generic_memset(dst, val, len); }
 }
 
 #[cfg(feature = "arm64")]
 unsafe fn arm64_sve_memcpy(dst: *mut u8, src: *const u8, len: usize) {
     // Real implementation would use SVE instructions
-    generic_memcpy(dst, src, len);
+    unsafe { generic_memcpy(dst, src, len); }
 }
 
 #[cfg(feature = "arm64")]
 unsafe fn arm64_sve_memset(dst: *mut u8, val: u8, len: usize) {
     // Real implementation would use SVE instructions
-    generic_memset(dst, val, len);
+    unsafe { generic_memset(dst, val, len); }
 }
 
 #[cfg(feature = "arm64")]
 unsafe fn arm64_neon_memcpy(dst: *mut u8, src: *const u8, len: usize) {
     // Real implementation would use NEON instructions
-    generic_memcpy(dst, src, len);
+    unsafe { generic_memcpy(dst, src, len); }
 }
 
 #[cfg(feature = "arm64")]
 unsafe fn arm64_neon_memset(dst: *mut u8, val: u8, len: usize) {
     // Real implementation would use NEON instructions
-    generic_memset(dst, val, len);
+    unsafe { generic_memset(dst, val, len); }
 }
 
 #[cfg(feature = "riscv64")]
 unsafe fn riscv_vector_memcpy(dst: *mut u8, src: *const u8, len: usize) {
     // Real implementation would use RISC-V vector extension
-    generic_memcpy(dst, src, len);
+    unsafe { generic_memcpy(dst, src, len); }
 }
 
 #[cfg(feature = "riscv64")]
 unsafe fn riscv_vector_memset(dst: *mut u8, val: u8, len: usize) {
     // Real implementation would use RISC-V vector extension
-    generic_memset(dst, val, len);
+    unsafe { generic_memset(dst, val, len); }
 }
 
 // Generic fallback implementations

@@ -2,6 +2,7 @@
 
 use crate::errors::ThreadError;
 use portable_atomic::{AtomicU64, AtomicUsize, Ordering};
+use core::arch::asm;
 
 /// Cryptographically secure RNG implementation.
 pub struct SecureRng {
@@ -91,7 +92,7 @@ impl SecureRng {
     
     /// Collect entropy from hardware sources.
     fn collect_hardware_entropy(&mut self) -> Result<(), ThreadError> {
-        let entropy_count = 0;
+        let mut entropy_count = 0;
         
         // Use RDRAND if available
         #[cfg(feature = "x86_64")]

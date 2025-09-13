@@ -334,7 +334,7 @@ mod generic_impl {
     }
 }
 
-#[cfg(feature = "mmu")]
+#[cfg(all(feature = "mmu", target_os = "linux"))]
 use linux_impl::*;
 
 #[cfg(not(feature = "mmu"))]

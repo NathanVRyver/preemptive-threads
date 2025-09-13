@@ -124,7 +124,7 @@ impl<A: Arch> ContextSwitchOptimizer<A> {
             if self.config.use_optimized_assembly {
                 self.optimized_arch_switch(prev_context, next_context);
             } else {
-                A::context_switch(prev_context, next_context);
+                unsafe { A::context_switch(prev_context, next_context); }
             }
         }
         
@@ -143,7 +143,7 @@ impl<A: Arch> ContextSwitchOptimizer<A> {
     ) {
         // Use unsafe blocks and delegate to generic architecture-specific switch
         unsafe {
-            A::context_switch(prev_context, next_context);
+            unsafe { A::context_switch(prev_context, next_context); }
         }
     }
     
@@ -156,7 +156,7 @@ impl<A: Arch> ContextSwitchOptimizer<A> {
     ) {
         if self.config.minimize_register_saves {
             // Use minimal register set for fast switching
-            core::arch::asm!(
+            unsafe { core::arch::asm!(
                 // Save only essential registers
                 "pushq %rbx",
                 "pushq %rbp", 
@@ -182,10 +182,10 @@ impl<A: Arch> ContextSwitchOptimizer<A> {
                 prev = in(reg) prev_context,
                 next = in(reg) next_context,
                 clobber_abi("C")
-            );
+            ); }
         } else {
             // Fallback to full context switch
-            A::context_switch(prev_context, next_context);
+            unsafe { A::context_switch(prev_context, next_context); }
         }
     }
     
@@ -199,9 +199,9 @@ impl<A: Arch> ContextSwitchOptimizer<A> {
         if self.config.minimize_register_saves {
             // ARM64-specific optimizations would go here
             // For now, fallback to standard implementation
-            A::context_switch(prev_context, next_context);
+            unsafe { A::context_switch(prev_context, next_context); }
         } else {
-            A::context_switch(prev_context, next_context);
+            unsafe { A::context_switch(prev_context, next_context); }
         }
     }
     
@@ -215,9 +215,9 @@ impl<A: Arch> ContextSwitchOptimizer<A> {
         if self.config.minimize_register_saves {
             // RISC-V-specific optimizations would go here
             // For now, fallback to standard implementation
-            A::context_switch(prev_context, next_context);
+            unsafe { A::context_switch(prev_context, next_context); }
         } else {
-            A::context_switch(prev_context, next_context);
+            unsafe { A::context_switch(prev_context, next_context); }
         }
     }
     
@@ -234,11 +234,11 @@ impl<A: Arch> ContextSwitchOptimizer<A> {
             for i in 0..8 {
                 unsafe {
                     let prefetch_addr = stack_ptr.offset(i * 64); // 64-byte cache lines
-                    core::arch::asm!(
+                    unsafe { core::arch::asm!(
                         "prefetcht0 ({addr})",
                         addr = in(reg) prefetch_addr,
                         options(nostack, readonly)
-                    );
+                    ); }
                 }
             }
         }

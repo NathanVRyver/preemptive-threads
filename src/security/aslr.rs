@@ -3,7 +3,7 @@
 use crate::errors::ThreadError;
 use crate::security::{SecurityConfig, crypto_rng::secure_random_u64};
 use portable_atomic::{AtomicU64, AtomicUsize, Ordering};
-use alloc::vec::Vec;
+use alloc::{vec, vec::Vec};
 
 /// ASLR implementation for thread stacks and memory layout.
 pub struct AslrManager {
@@ -229,7 +229,7 @@ impl ArchConstraints {
     pub fn detect() -> Self {
         #[cfg(feature = "x86_64")]
         {
-            Self {
+            return Self {
                 arch: Architecture::X86_64,
                 min_alignment: 4096, // Page aligned
                 max_randomization: 1 << 28, // 256MB
@@ -237,7 +237,7 @@ impl ArchConstraints {
                     // Kernel space
                     MemoryRegion { start: 0xFFFF800000000000, size: usize::MAX },
                 ],
-            }
+            };
         }
         
         #[cfg(feature = "arm64")]
