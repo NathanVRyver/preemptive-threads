@@ -1,6 +1,6 @@
 //! Timer configuration and interrupt management.
 
-use super::{Duration, Instant};
+use super::Duration;
 use crate::arch::Arch;
 
 /// Timer configuration for preemptive scheduling.

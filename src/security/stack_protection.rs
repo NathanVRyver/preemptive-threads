@@ -3,7 +3,7 @@
 use crate::errors::ThreadError;
 use crate::security::{SecurityConfig, SecurityViolation, SECURITY_STATE, handle_security_violation};
 use crate::mem::Stack;
-use portable_atomic::{AtomicU64, AtomicUsize, Ordering};
+use portable_atomic::{AtomicUsize, Ordering};
 use alloc::alloc;
 
 /// Stack canary magic value for overflow detection.
@@ -361,8 +361,6 @@ mod generic_impl {
     }
 }
 
-#[cfg(not(feature = "mmu"))]
-use generic_impl::*;
 
 /// Automatic stack canary checker that validates on drop.
 pub struct StackCanaryGuard<'a> {

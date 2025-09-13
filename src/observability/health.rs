@@ -4,9 +4,8 @@
 //! system including deadlock detection, resource exhaustion monitoring,
 //! and overall system health assessment.
 
-use portable_atomic::{AtomicU64, AtomicU32, AtomicUsize, AtomicBool, Ordering};
+use portable_atomic::{AtomicU64, AtomicBool, Ordering};
 use crate::time::{Duration, Instant};
-use crate::thread_new::ThreadId;
 extern crate alloc;
 use alloc::{vec::Vec, collections::BTreeMap, string::{String, ToString}, boxed::Box};
 use spin::Mutex;

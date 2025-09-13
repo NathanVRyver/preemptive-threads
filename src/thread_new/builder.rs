@@ -1,7 +1,7 @@
 //! Thread builder for configuring thread creation.
 
 use super::{Thread, JoinHandle, ThreadId};
-use crate::mem::{StackPool, StackSizeClass, Stack};
+use crate::mem::{StackPool, StackSizeClass};
 use crate::errors::SpawnError;
 use crate::time::Duration;
 extern crate alloc;
@@ -274,7 +274,7 @@ impl ThreadBuilder {
         }
         
         // Create the thread with all configuration
-        let (mut thread, join_handle) = Thread::new(
+        let (thread, join_handle) = Thread::new(
             thread_id,
             stack,
             entry_point,

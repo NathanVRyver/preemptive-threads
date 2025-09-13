@@ -7,7 +7,6 @@ use crate::arch::barriers::CacheLinePadded;
 use portable_atomic::{AtomicUsize, AtomicPtr, AtomicU64, Ordering};
 use alloc::vec::Vec;
 use alloc::collections::VecDeque;
-use core::ptr::NonNull;
 
 /// Per-CPU memory pool for lock-free allocation.
 #[repr(align(64))] // Cache line aligned

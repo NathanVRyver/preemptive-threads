@@ -4,8 +4,8 @@
 //! in no_std environments and supports manual reference count management.
 
 use portable_atomic::{AtomicUsize, Ordering};
-use core::alloc::{GlobalAlloc, Layout};
-use core::ptr::{self, NonNull};
+use core::alloc::Layout;
+use core::ptr::NonNull;
 use core::ops::Deref;
 // mem and MaybeUninit imports not needed yet
 // use core::mem::{self, MaybeUninit};

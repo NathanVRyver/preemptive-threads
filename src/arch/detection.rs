@@ -3,7 +3,7 @@
 //! This module provides runtime detection of CPU features and capabilities
 //! to enable architecture-specific optimizations.
 
-use portable_atomic::{AtomicU32, AtomicBool, Ordering};
+use portable_atomic::{AtomicBool, Ordering};
 
 /// CPU architecture types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

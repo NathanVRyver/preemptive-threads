@@ -3,7 +3,6 @@
 use super::trait_def::{Scheduler, CpuId};
 use crate::thread_new::{ReadyRef, RunningRef, ThreadId};
 use crate::observability::metrics::GLOBAL_METRICS;
-use crate::time::Instant;
 use portable_atomic::{AtomicUsize, AtomicPtr, Ordering};
 use core::ptr;
 extern crate alloc;

@@ -61,7 +61,6 @@ extern crate std;
 extern crate alloc;
 
 // Import alloc types and macros
-use alloc::{vec, vec::Vec, string::String, format, collections::VecDeque};
 
 #[cfg(all(not(test), not(feature = "std"), not(feature = "std-shim")))]
 use core::panic::PanicInfo;

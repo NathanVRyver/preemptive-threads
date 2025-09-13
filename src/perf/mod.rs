@@ -11,7 +11,7 @@ pub mod fast_paths;
 pub mod memory_pools;
 pub mod context_switch_opt;
 
-use portable_atomic::{AtomicU64, AtomicUsize, Ordering};
+use portable_atomic::{AtomicU64, Ordering};
 use crate::arch::detection::{CpuFeatures, detect_cpu_features};
 
 /// Global performance configuration based on detected CPU features.

@@ -4,7 +4,7 @@
 //! CPU time, memory usage, file descriptors, and thread counts with
 //! real-time monitoring and violation detection.
 
-use portable_atomic::{AtomicU64, AtomicU32, AtomicUsize, AtomicBool, Ordering};
+use portable_atomic::{AtomicU64, AtomicUsize, AtomicBool, Ordering};
 use crate::time::{Duration, Instant};
 use crate::thread_new::ThreadId;
 use crate::errors::{ResourceError, ThreadError};

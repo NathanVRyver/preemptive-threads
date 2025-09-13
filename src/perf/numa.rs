@@ -1,11 +1,11 @@
 //! NUMA-aware thread placement and memory allocation optimizations.
 
 use crate::perf::{PerfConfig, PERF_COUNTERS};
-use crate::thread_new::{Thread, ThreadId};
+use crate::thread_new::Thread;
 use crate::sched::CpuId;
 use crate::arch::barriers::CacheLinePadded;
 use portable_atomic::{AtomicUsize, AtomicU64, Ordering};
-use alloc::{sync::Arc, vec, vec::Vec, collections::BTreeMap};
+use alloc::{vec, vec::Vec};
 
 /// NUMA node identifier.
 pub type NumaNodeId = u16;

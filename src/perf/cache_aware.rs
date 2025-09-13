@@ -2,7 +2,7 @@
 
 use crate::arch::barriers::CacheLinePadded;
 use crate::perf::{PerfConfig, PERF_COUNTERS};
-use crate::thread_new::{Thread, ThreadId};
+use crate::thread_new::Thread;
 use crate::sched::CpuId;
 use portable_atomic::{AtomicUsize, AtomicU64, AtomicPtr, Ordering};
 use alloc::sync::Arc;

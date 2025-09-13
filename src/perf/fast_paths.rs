@@ -4,7 +4,6 @@ use crate::perf::PERF_COUNTERS;
 use crate::thread_new::{Thread, ThreadId, ThreadState};
 use crate::sched::CpuId;
 use portable_atomic::{AtomicPtr, AtomicU64, AtomicUsize, Ordering};
-use alloc::sync::Arc;
 
 /// Fast path implementations for critical threading operations.
 pub struct FastPaths;

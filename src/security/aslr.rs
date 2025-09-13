@@ -2,7 +2,6 @@
 
 use crate::errors::ThreadError;
 use crate::security::{SecurityConfig, crypto_rng::secure_random_u64};
-use crate::mem::Stack;
 use portable_atomic::{AtomicU64, AtomicUsize, Ordering};
 use alloc::vec::Vec;
 

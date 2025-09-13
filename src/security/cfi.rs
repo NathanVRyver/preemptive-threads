@@ -3,7 +3,6 @@
 use crate::errors::ThreadError;
 use crate::security::{SecurityConfig, SecurityViolation, handle_security_violation};
 use portable_atomic::{AtomicU64, AtomicUsize, Ordering};
-use core::arch::asm;
 
 /// CFI protection implementation.
 pub struct CfiProtection {

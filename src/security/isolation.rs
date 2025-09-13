@@ -2,7 +2,7 @@
 
 use crate::errors::ThreadError;
 use crate::security::{SecurityConfig, SecurityViolation, handle_security_violation};
-use crate::thread_new::{Thread, ThreadId};
+use crate::thread_new::ThreadId;
 use portable_atomic::{AtomicU64, AtomicUsize, Ordering};
 use alloc::{collections::BTreeMap, vec, vec::Vec};
 

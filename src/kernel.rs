@@ -4,7 +4,7 @@
 //! threading operations and eliminates global singleton state.
 
 use crate::arch::Arch;
-use crate::sched::{Scheduler, CpuId};
+use crate::sched::Scheduler;
 use crate::thread_new::{ThreadId, Thread, JoinHandle, ReadyRef, RunningRef};
 use crate::mem::{StackPool, StackSizeClass};
 use core::marker::PhantomData;

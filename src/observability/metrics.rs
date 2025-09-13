@@ -3,7 +3,7 @@
 //! This module provides detailed metrics about thread creation, scheduling,
 //! context switches, resource usage, and system performance.
 
-use portable_atomic::{AtomicU64, AtomicU32, AtomicUsize, AtomicBool, Ordering};
+use portable_atomic::{AtomicU64, AtomicU32, AtomicBool, Ordering};
 use crate::time::{Instant, Duration};
 use crate::thread_new::ThreadId;
 extern crate alloc;

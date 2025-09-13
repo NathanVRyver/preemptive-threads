@@ -4,8 +4,8 @@
 //! CPU usage, memory allocation patterns, context switching costs,
 //! and scheduler efficiency analysis.
 
-use portable_atomic::{AtomicU64, AtomicU32, AtomicUsize, AtomicBool, Ordering};
-use crate::time::{Duration, Instant};
+use portable_atomic::{AtomicU64, AtomicBool, Ordering};
+use crate::time::Instant;
 use crate::thread_new::ThreadId;
 extern crate alloc;
 use alloc::{vec::Vec, collections::BTreeMap};

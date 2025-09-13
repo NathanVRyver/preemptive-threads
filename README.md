@@ -2,9 +2,9 @@
 
 A production-ready `no_std` preemptive multithreading library built from scratch for OS kernels and embedded systems.
 
-[![Crates.io](https://img.shields.io/crates/v/preemptive_mlthreading_rust.svg)](https://crates.io/crates/preemptive_mlthreading_rust)
-[![Documentation](https://docs.rs/preemptive_mlthreading_rust/badge.svg)](https://docs.rs/preemptive_mlthreading_rust)
-[![Downloads](https://img.shields.io/crates/d/preemptive_mlthreading_rust.svg)](https://crates.io/crates/preemptive_mlthreading_rust)
+[![Crates.io](https://img.shields.io/crates/v/preemptive-threads.svg)](https://crates.io/crates/preemptive-threads)
+[![Documentation](https://docs.rs/preemptive-threads/badge.svg)](https://docs.rs/preemptive-threads)
+[![Downloads](https://img.shields.io/crates/d/preemptive-threads.svg)](https://crates.io/crates/preemptive-threads)
 
 ## Features
 
@@ -31,7 +31,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-preemptive_mlthreading_rust = "1.0"
+preemptive-threads = "1.0"
 
 # Enable features as needed
 [features]
@@ -51,7 +51,7 @@ std-shim = []        # Standard library compatibility
 #![no_std]
 #![no_main]
 
-use preemptive_mlthreading_rust::{
+use preemptive_threads::{
     ThreadBuilder, JoinHandle, yield_now, 
     init_security, SecurityConfig
 };
@@ -96,7 +96,7 @@ pub extern "C" fn main() -> ! {
 ### Advanced Scheduler Configuration
 
 ```rust
-use preemptive_mlthreading_rust::{
+use preemptive_threads::{
     NewScheduler, RoundRobinScheduler, ThreadBuilder, 
     CpuId, Duration
 };
@@ -119,7 +119,7 @@ let handle = ThreadBuilder::new()
 ### Security-Hardened Threading
 
 ```rust
-use preemptive_mlthreading_rust::{
+use preemptive_threads::{
     ThreadBuilder, SecurityConfig, SecurityFeature,
     configure_security_feature, isolated_thread
 };
@@ -391,4 +391,4 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and breaking changes.
 - [ ] Machine learning-based scheduling
 - [ ] Formal verification of core algorithms
 
-For detailed documentation, visit [docs.rs/preemptive_mlthreading_rust](https://docs.rs/preemptive_mlthreading_rust).
+For detailed documentation, visit [docs.rs/preemptive-threads](https://docs.rs/preemptive-threads).
