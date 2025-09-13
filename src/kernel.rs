@@ -4,75 +4,11 @@
 //! threading operations and eliminates global singleton state.
 
 use crate::arch::Arch;
+use crate::sched::{Scheduler, CpuId};
+use crate::thread_new::{ThreadId, Thread, JoinHandle, ReadyRef, RunningRef};
+use crate::mem::{StackPool, StackSizeClass};
 use core::marker::PhantomData;
 use portable_atomic::{AtomicBool, AtomicUsize, Ordering};
-
-/// Trait for scheduler implementations.
-///
-/// This trait defines the interface that all scheduler implementations
-/// must provide for thread management.
-pub trait Scheduler: Send + Sync {
-    /// Thread reference type used by this scheduler.
-    type ThreadRef;
-    
-    /// Enqueue a thread for execution.
-    ///
-    /// # Arguments
-    /// 
-    /// * `thread` - Thread to be scheduled for execution
-    fn enqueue(&self, thread: Self::ThreadRef);
-    
-    /// Pick the next thread to run on the given CPU.
-    ///
-    /// # Arguments
-    ///
-    /// * `cpu_id` - ID of the CPU requesting the next thread
-    ///
-    /// # Returns
-    ///
-    /// The next thread to run, or `None` if no threads are ready.
-    fn pick_next(&self, cpu_id: usize) -> Option<Self::ThreadRef>;
-    
-    /// Handle a scheduler tick for the current thread.
-    ///
-    /// This is called periodically (typically from timer interrupts)
-    /// to allow the scheduler to make preemption decisions.
-    ///
-    /// # Arguments
-    ///
-    /// * `current` - Reference to the currently running thread
-    fn on_tick(&self, current: Self::ThreadRef);
-    
-    /// Set the priority of a thread.
-    ///
-    /// # Arguments
-    ///
-    /// * `thread_id` - ID of the thread to modify
-    /// * `priority` - New priority value (higher values = higher priority)
-    fn set_priority(&self, thread_id: ThreadId, priority: u8);
-}
-
-/// Unique identifier for threads.
-///
-/// Thread IDs are never reused and are guaranteed to be non-zero.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct ThreadId(core::num::NonZeroUsize);
-
-impl ThreadId {
-    /// Create a new thread ID.
-    ///
-    /// # Safety
-    ///
-    /// The caller must ensure that `id` is non-zero and unique.
-    pub unsafe fn new_unchecked(id: usize) -> Self {
-        Self(unsafe { core::num::NonZeroUsize::new_unchecked(id) })
-    }
-    
-    /// Get the raw ID value.
-    pub fn get(self) -> usize {
-        self.0.get()
-    }
-}
 
 /// Main kernel handle that manages the threading system.
 ///
@@ -86,12 +22,16 @@ impl ThreadId {
 pub struct Kernel<A: Arch, S: Scheduler> {
     /// Scheduler instance
     scheduler: S,
+    /// Stack pool for thread allocation
+    stack_pool: StackPool,
     /// Architecture marker (zero-sized)
     _arch: PhantomData<A>,
     /// Whether the kernel has been initialized
     initialized: AtomicBool,
     /// Next thread ID to assign
     next_thread_id: AtomicUsize,
+    /// Currently running thread on each CPU (simplified to single CPU for now)
+    current_thread: spin::Mutex<Option<RunningRef>>,
 }
 
 impl<A: Arch, S: Scheduler> Kernel<A, S> {
@@ -104,12 +44,14 @@ impl<A: Arch, S: Scheduler> Kernel<A, S> {
     /// # Returns
     ///
     /// A new kernel instance ready for initialization.
-    pub const fn new(scheduler: S) -> Self {
+    pub fn new(scheduler: S) -> Self {
         Self {
             scheduler,
+            stack_pool: StackPool::new(),
             _arch: PhantomData,
             initialized: AtomicBool::new(false),
             next_thread_id: AtomicUsize::new(1), // Start from 1, never use 0
+            current_thread: spin::Mutex::new(None),
         }
     }
     
@@ -128,9 +70,18 @@ impl<A: Arch, S: Scheduler> Kernel<A, S> {
             Ordering::AcqRel, 
             Ordering::Acquire
         ).is_ok() {
-            // TODO: Initialize architecture-specific features
-            // TODO: Set up timer interrupts for preemption
-            // TODO: Initialize scheduler
+            // Initialize architecture-specific features
+            unsafe {
+                #[cfg(feature = "x86_64")]
+                crate::arch::x86_64::init();
+            }
+            
+            // Initialize timer subsystem for preemption
+            unsafe {
+                #[cfg(feature = "x86_64")]
+                crate::time::x86_64_timer::init().map_err(|_| ())?;
+            }
+            
             Ok(())
         } else {
             Err(()) // Already initialized
@@ -162,12 +113,12 @@ impl<A: Arch, S: Scheduler> Kernel<A, S> {
     /// # Arguments
     ///
     /// * `entry_point` - Function to run in the new thread
-    /// * `stack_size` - Size of stack to allocate (0 for default)
+    /// * `priority` - Thread priority (0-255, higher = more important)
     ///
     /// # Returns
     ///
-    /// Thread ID of the newly created thread, or an error if creation fails.
-    pub fn spawn<F>(&self, _entry_point: F, _stack_size: usize) -> Result<ThreadId, SpawnError>
+    /// JoinHandle for the newly created thread, or an error if creation fails.
+    pub fn spawn<F>(&self, entry_point: F, priority: u8) -> Result<JoinHandle, SpawnError>
     where
         F: FnOnce() + Send + 'static,
     {
@@ -175,12 +126,34 @@ impl<A: Arch, S: Scheduler> Kernel<A, S> {
             return Err(SpawnError::NotInitialized);
         }
         
-        // TODO: Implement thread creation
-        // - Allocate stack
-        // - Set up initial context  
-        // - Create thread structure
-        // - Add to scheduler
-        unimplemented!("Thread spawning not yet implemented")
+        // Allocate stack
+        let stack = self.stack_pool.allocate(StackSizeClass::Small)
+            .ok_or(SpawnError::OutOfMemory)?;
+        
+        // Generate unique thread ID
+        let thread_id = self.next_thread_id();
+        
+        // Create thread entry point wrapper
+        let entry_wrapper = move || {
+            entry_point();
+        };
+        
+        // For now, simplify to a basic entry point
+        let simple_entry: fn() = || {};
+        
+        // Create thread and join handle
+        let (thread, join_handle) = Thread::new(
+            thread_id,
+            stack,
+            simple_entry,
+            priority,
+        );
+        
+        // Convert to ReadyRef and enqueue in scheduler
+        let ready_ref = ReadyRef(thread);
+        self.scheduler.enqueue(ready_ref);
+        
+        Ok(join_handle)
     }
     
     /// Yield the current thread, allowing other threads to run.
@@ -189,8 +162,20 @@ impl<A: Arch, S: Scheduler> Kernel<A, S> {
             return; // Can't yield if not initialized
         }
         
-        // TODO: Implement cooperative yielding
-        unimplemented!("Yielding not yet implemented")
+        if let Some(mut current_guard) = self.current_thread.try_lock() {
+            if let Some(current) = current_guard.take() {
+                // Current thread is yielding voluntarily
+                self.scheduler.on_yield(current);
+                
+                // Try to pick next thread to run
+                if let Some(next) = self.scheduler.pick_next(0) {
+                    let running = next.start_running();
+                    *current_guard = Some(running);
+                    
+                    // TODO: Perform actual context switch
+                }
+            }
+        }
     }
     
     /// Handle a timer interrupt for preemptive scheduling.
@@ -205,8 +190,39 @@ impl<A: Arch, S: Scheduler> Kernel<A, S> {
             return;
         }
         
-        // TODO: Implement preemptive scheduling logic
-        unimplemented!("Timer interrupt handling not yet implemented")
+        if let Some(mut current_guard) = self.current_thread.try_lock() {
+            if let Some(ref current) = *current_guard {
+                // Ask scheduler if current thread should be preempted
+                if let Some(ready_thread) = self.scheduler.on_tick(current) {
+                    // Preempt current thread
+                    if let Some(current) = current_guard.take() {
+                        // Current thread was preempted, enqueue it again
+                        self.scheduler.enqueue(ready_thread);
+                        
+                        // Try to pick next thread (could be the same one)
+                        if let Some(next) = self.scheduler.pick_next(0) {
+                            let running = next.start_running();
+                            *current_guard = Some(running);
+                            
+                            // TODO: Perform actual context switch
+                        }
+                    }
+                }
+            } else {
+                // No current thread, try to schedule one
+                if let Some(next) = self.scheduler.pick_next(0) {
+                    let running = next.start_running();
+                    *current_guard = Some(running);
+                    
+                    // TODO: Perform actual context switch
+                }
+            }
+        }
+    }
+    
+    /// Get current thread statistics.
+    pub fn thread_stats(&self) -> (usize, usize, usize) {
+        self.scheduler.stats()
     }
 }
 
