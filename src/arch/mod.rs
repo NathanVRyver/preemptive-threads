@@ -77,10 +77,8 @@ pub trait Arch {
 ///
 /// This implementation provides stub functionality and should not be used
 /// in production code where real context switching is required.
-#[cfg(feature = "std-shim")]
 pub struct NoOpArch;
 
-#[cfg(feature = "std-shim")]
 impl Arch for NoOpArch {
     type SavedContext = ();
 
@@ -119,7 +117,10 @@ pub mod x86_64;
 pub mod aarch64;
 
 #[cfg(feature = "riscv64")]
-pub mod riscv64;
+pub mod riscv;
+
+pub mod barriers;
+pub mod detection;
 
 // Re-export the default architecture for the current target
 #[cfg(all(target_arch = "x86_64", feature = "x86_64"))]
@@ -129,7 +130,16 @@ pub use x86_64::X86_64Arch as DefaultArch;
 pub use aarch64::Aarch64Arch as DefaultArch;
 
 #[cfg(all(any(target_arch = "riscv64"), feature = "riscv64"))]
-pub use riscv64::Riscv64Arch as DefaultArch;
+pub use riscv::RiscvArch as DefaultArch;
 
-#[cfg(feature = "std-shim")]
+#[cfg(all(feature = "std-shim", not(any(feature = "x86_64", feature = "arm64", feature = "riscv64"))))]
+pub use NoOpArch as DefaultArch;
+
+// Fallback for when no specific architecture is enabled
+#[cfg(not(any(
+    all(target_arch = "x86_64", feature = "x86_64"),
+    all(target_arch = "aarch64", feature = "arm64"), 
+    all(any(target_arch = "riscv64"), feature = "riscv64"),
+    all(feature = "std-shim", not(any(feature = "x86_64", feature = "arm64", feature = "riscv64")))
+)))]
 pub use NoOpArch as DefaultArch;
