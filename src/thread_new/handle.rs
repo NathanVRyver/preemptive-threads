@@ -109,7 +109,7 @@ unsafe impl Sync for JoinHandle {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::thread_new::Thread;
+    use crate::thread_new::{Thread, ThreadId};
     use crate::mem::{StackPool, StackSizeClass};
     
     #[cfg(feature = "std-shim")]
@@ -117,7 +117,7 @@ mod tests {
     fn test_join_handle_basic() {
         let pool = StackPool::new();
         let stack = pool.allocate(StackSizeClass::Small).unwrap();
-        let thread_id = unsafe { super::ThreadId::new_unchecked(1) };
+        let thread_id = unsafe { ThreadId::new_unchecked(1) };
         
         let (thread, join_handle) = Thread::new(
             thread_id,
@@ -132,7 +132,7 @@ mod tests {
         
         // Simulate thread completion
         thread.set_state(ThreadState::Finished);
-        if let Ok(mut join_result) = thread.inner.join_result.try_lock() {
+        if let Some(mut join_result) = thread.inner.join_result.try_lock() {
             *join_result = Some(());
         }
         
