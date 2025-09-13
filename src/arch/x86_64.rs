@@ -64,57 +64,59 @@ impl Arch for X86_64Arch {
     /// - The `next` context must represent a valid execution state
     /// - Stack pointer in `next` context must point to valid, accessible memory
     unsafe fn context_switch(prev: *mut Self::SavedContext, next: *const Self::SavedContext) {
-        // TODO: This is a placeholder. Real implementation would use inline assembly
-        // to save current register state to `prev` and restore from `next`.
-        // 
-        // The actual implementation would look something like:
-        // asm!(
-        //     "pushfq",                    // Save flags
-        //     "mov %rbx, 16(%rdi)",       // Save rbx
-        //     "mov %r12, 24(%rdi)",       // Save r12  
-        //     "mov %r13, 32(%rdi)",       // Save r13
-        //     "mov %r14, 40(%rdi)",       // Save r14
-        //     "mov %r15, 48(%rdi)",       // Save r15
-        //     "mov %rbp, 8(%rdi)",        // Save rbp
-        //     "mov %rsp, (%rdi)",         // Save rsp
-        //     "popq 56(%rdi)",            // Save rflags
-        //     
-        //     "mov (%rsi), %rsp",         // Restore rsp
-        //     "mov 8(%rsi), %rbp",        // Restore rbp  
-        //     "mov 16(%rsi), %rbx",       // Restore rbx
-        //     "mov 24(%rsi), %r12",       // Restore r12
-        //     "mov 32(%rsi), %r13",       // Restore r13
-        //     "mov 40(%rsi), %r14",       // Restore r14
-        //     "mov 48(%rsi), %r15",       // Restore r15
-        //     "pushq 56(%rsi)",           // Restore rflags
-        //     "popfq",
-        //     in("rdi") prev,
-        //     in("rsi") next,
-        //     options(nostack, preserves_flags)
-        // );
-        unimplemented!("Context switch requires inline assembly - stub for now")
+        unsafe {
+            asm!(
+                // Save current context
+                "pushfq",                      // Save RFLAGS on stack
+                "pop {rflags}",               // Pop into temp register
+                "mov qword ptr [{prev} + 56], {rflags}",   // Store RFLAGS
+                "mov qword ptr [{prev} + 0], rsp",         // Save RSP
+                "mov qword ptr [{prev} + 8], rbp",         // Save RBP
+                "mov qword ptr [{prev} + 16], rbx",        // Save RBX
+                "mov qword ptr [{prev} + 24], r12",        // Save R12
+                "mov qword ptr [{prev} + 32], r13",        // Save R13
+                "mov qword ptr [{prev} + 40], r14",        // Save R14
+                "mov qword ptr [{prev} + 48], r15",        // Save R15
+                
+                // Restore next context
+                "mov rsp, qword ptr [{next} + 0]",         // Restore RSP
+                "mov rbp, qword ptr [{next} + 8]",         // Restore RBP
+                "mov rbx, qword ptr [{next} + 16]",        // Restore RBX
+                "mov r12, qword ptr [{next} + 24]",        // Restore R12
+                "mov r13, qword ptr [{next} + 32]",        // Restore R13
+                "mov r14, qword ptr [{next} + 40]",        // Restore R14
+                "mov r15, qword ptr [{next} + 48]",        // Restore R15
+                "push qword ptr [{next} + 56]",            // Push RFLAGS onto stack
+                "popfq",                      // Restore RFLAGS
+                
+                prev = in(reg) prev,
+                next = in(reg) next,
+                rflags = out(reg) _,
+                options(nostack)
+            );
+        }
     }
 
     #[cfg(feature = "full-fpu")]
     unsafe fn save_fpu(ctx: &mut Self::SavedContext) {
-        // TODO: Use FXSAVE instruction to save FPU/SSE state
-        // asm!(
-        //     "fxsave (%rdi)",
-        //     in("rdi") ctx.fpu_state.as_mut_ptr(),
-        //     options(nostack, preserves_flags)
-        // );
-        unimplemented!("FPU save requires inline assembly - stub for now")
+        unsafe {
+            asm!(
+                "fxsave [{}]",
+                in(reg) ctx.fpu_state.as_mut_ptr(),
+                options(nostack, preserves_flags)
+            );
+        }
     }
 
     #[cfg(feature = "full-fpu")]
     unsafe fn restore_fpu(ctx: &Self::SavedContext) {
-        // TODO: Use FXRSTOR instruction to restore FPU/SSE state
-        // asm!(
-        //     "fxrstor (%rdi)",
-        //     in("rdi") ctx.fpu_state.as_ptr(),
-        //     options(nostack, preserves_flags)
-        // );
-        unimplemented!("FPU restore requires inline assembly - stub for now")
+        unsafe {
+            asm!(
+                "fxrstor [{}]",
+                in(reg) ctx.fpu_state.as_ptr(),
+                options(nostack, preserves_flags)
+            );
+        }
     }
 
     fn enable_interrupts() {
@@ -132,7 +134,7 @@ impl Arch for X86_64Arch {
     fn interrupts_enabled() -> bool {
         let flags: u64;
         unsafe {
-            asm!("pushfq; pop %rax", out("rax") flags, options(nostack, nomem));
+            asm!("pushfq", "pop {}", out(reg) flags, options(nostack, nomem, preserves_flags));
         }
         (flags & 0x200) != 0 // Test interrupt flag (IF)
     }
@@ -142,8 +144,24 @@ impl Arch for X86_64Arch {
 ///
 /// This function sets up any architecture-specific features that need
 /// initialization before threading can begin.
-pub fn init() {
-    // TODO: Initialize APIC timer, IDT entries, etc.
+///
+/// # Safety
+///
+/// Must be called once during system initialization with interrupts disabled.
+pub unsafe fn init() {
+    // Initialize timer subsystem
+    #[cfg(feature = "x86_64")]
+    {
+        if let Err(e) = unsafe { crate::time::x86_64_timer::init() } {
+            // TODO: Better error handling
+            panic!("Failed to initialize x86_64 timer: {:?}", e);
+        }
+    }
+    
+    // TODO: Initialize other x86_64 features:
+    // - Set up IDT entries for timer interrupt
+    // - Configure APIC
+    // - Set up system call interface
 }
 
 /// x86_64-specific timer interrupt handler.
@@ -155,6 +173,54 @@ pub fn init() {
 ///
 /// Must be called from an interrupt context with a valid interrupt stack frame.
 pub unsafe fn timer_interrupt_handler() {
-    // TODO: Call into scheduler for preemption
-    unimplemented!("Timer interrupt handler - stub for now")
+    // Delegate to the timer subsystem
+    unsafe {
+        crate::time::timer::handle_timer_interrupt();
+    }
+}
+
+/// Memory barrier operations for x86_64.
+pub fn memory_barrier_full() {
+    unsafe {
+        asm!("mfence", options(nomem, nostack));
+    }
+}
+
+pub fn memory_barrier_acquire() {
+    unsafe {
+        asm!("lfence", options(nomem, nostack));
+    }
+}
+
+pub fn memory_barrier_release() {
+    unsafe {
+        asm!("sfence", options(nomem, nostack));
+    }
+}
+
+/// CPU cache maintenance for x86_64.
+pub unsafe fn flush_dcache_range(start: *const u8, len: usize) {
+    unsafe {
+        let end = start.add(len);
+        let mut addr = start as usize & !63; // Align to cache line (64 bytes)
+        
+        while addr < end as usize {
+            asm!(
+                "clflush ({addr})",
+                addr = in(reg) addr,
+                options(nomem, nostack)
+            );
+            addr += 64; // Next cache line
+        }
+        
+        // Memory fence to ensure completion
+        memory_barrier_full();
+    }
+}
+
+/// Invalidate instruction cache for x86_64.
+pub unsafe fn flush_icache() {
+    // x86_64 has coherent instruction cache - no explicit flush needed
+    // Just ensure all stores are visible
+    memory_barrier_full();
 }
