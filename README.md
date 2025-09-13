@@ -369,7 +369,6 @@ at your option.
 ## Roadmap
 
 ### v0.5.1 (In Development) - Kernel Integration
-**Target: Q1 2025**
 
 This release will add actual OS kernel integration to make threads execute on real hardware:
 
