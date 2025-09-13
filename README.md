@@ -366,14 +366,134 @@ This project is dual-licensed under either of:
 
 at your option.
 
+## Roadmap
+
+### v0.5.1 (In Development) - Kernel Integration
+**Target: Q1 2025**
+
+This release will add actual OS kernel integration to make threads execute on real hardware:
+
+#### Linux Integration
+- [ ] **Kernel Module** - Linux loadable kernel module (LKM) for thread execution
+  - Hook into Linux scheduler via `schedule()` and `wake_up_process()`
+  - Register timer interrupts with `setup_timer()` / `mod_timer()`
+  - Implement `/proc/preemptive_threads` interface for monitoring
+- [ ] **User-space Library** - POSIX-compatible wrapper
+  - Map our API to `pthread` for compatibility mode
+  - Signal-based preemption using `SIGALRM` and `setitimer()`
+  - Integration with `io_uring` for async I/O
+
+#### Windows Integration  
+- [ ] **Kernel Driver** - Windows kernel-mode driver
+  - Use Windows Thread Pool API for thread management
+  - Hook into Windows scheduler via `KeSetTimerEx()`
+  - Implement ETW (Event Tracing) provider for diagnostics
+- [ ] **User-mode Scheduling** (UMS) - Windows 7+ feature
+  - Direct scheduler control without kernel transitions
+  - Better performance than standard Windows threads
+
+#### Bare Metal Support
+- [ ] **UEFI Application** - Run directly on UEFI firmware
+  - No OS required - we become the OS
+  - Direct hardware control via UEFI protocols
+  - Example: Network boot server, embedded controller
+- [ ] **Hypervisor Integration** - Run as Type-1 hypervisor
+  - Xen/KVM integration for virtualized environments
+  - Direct hardware access via VT-x/AMD-V
+
+#### Integration Features
+- [ ] **Hardware Timer Setup**
+  - x86_64: Program APIC/HPET directly
+  - ARM64: Configure Generic Timer
+  - RISC-V: SBI timer interface
+- [ ] **Interrupt Handling**
+  - Install IDT (x86) / Vector Table (ARM) entries
+  - Context switch on timer interrupt
+  - IPI (Inter-Processor Interrupt) for multi-core
+- [ ] **Memory Management**
+  - Page table manipulation for thread isolation
+  - TLB management for context switches
+  - NUMA-aware memory allocation via kernel APIs
+
+#### Testing & Examples
+- [ ] **Kernel Test Module** - In-kernel test suite
+- [ ] **Benchmark Suite** - Compare with native OS threads
+- [ ] **Example OS Kernel** - Minimal OS using our library
+- [ ] **Container Runtime** - Docker-compatible runtime using our threads
+
+### How to Use v0.5.1 (Preview)
+
+```rust
+// Linux kernel module example
+use preemptive_threads::kernel_integration::linux;
+
+#[no_mangle]
+pub extern "C" fn init_module() -> i32 {
+    linux::register_threading_subsystem().unwrap();
+    printk!("Preemptive threading module loaded\n");
+    0
+}
+
+// Windows driver example  
+use preemptive_threads::kernel_integration::windows;
+
+#[no_mangle]
+pub extern "system" fn DriverEntry(
+    driver: *mut DRIVER_OBJECT,
+    registry: *mut UNICODE_STRING
+) -> NTSTATUS {
+    windows::initialize_thread_pool(driver);
+    STATUS_SUCCESS
+}
+
+// Bare metal UEFI example
+use preemptive_threads::kernel_integration::uefi;
+
+#[no_mangle]
+pub extern "efiapi" fn efi_main(
+    handle: Handle,
+    system_table: *mut SystemTable
+) -> Status {
+    uefi::become_kernel(system_table);
+    // We're now the OS!
+    Status::SUCCESS
+}
+```
+
+### Installation (v0.5.1 Preview)
+
+```bash
+# Linux kernel module
+make -C /lib/modules/$(uname -r)/build M=$PWD modules
+sudo insmod preemptive_threads.ko
+
+# Windows driver
+bcdedit /set testsigning on
+sc create preemptive_threads type=kernel binPath=preemptive_threads.sys
+sc start preemptive_threads
+
+# UEFI application
+cp preemptive_threads.efi /boot/EFI/
+# Boot directly from UEFI menu
+```
+
+### v0.6.0 (Future) - Production Ready
+- Full kernel integration testing completed
+- Performance optimizations based on real-world usage
+- Certified for production use in embedded systems
+- MISRA C compliance for automotive systems
+
+### v1.0.0 (Future) - Stable API
+- API stability guarantee
+- Long-term support (LTS) release
+- Complete documentation and examples
+- Industry adoption ready
+
 ## Acknowledgments
 
 - Inspired by research in lock-free data structures
 - Built on principles from modern OS kernels
 - Security design influenced by CFI and Intel CET
 - Performance optimization techniques from high-frequency trading systems
-
-
-
 
 For detailed documentation, visit [docs.rs/preemptive-threads](https://docs.rs/preemptive-threads).
