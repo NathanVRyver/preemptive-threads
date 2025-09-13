@@ -33,23 +33,35 @@ pub mod atomic_scheduler;
 pub mod context;
 pub mod context_full;
 pub mod error;
+pub mod errors;
 pub mod kernel;
 pub mod mem;
+pub mod observability;
+pub mod perf;
 pub mod platform_timer;
 pub mod preemption;
 pub mod safe_api;
+pub mod sched;
 pub mod scheduler;
+pub mod security;
 pub mod signal_safe;
 pub mod stack_guard;
 pub mod sync;
 pub mod thread;
 pub mod thread_new;
+pub mod time;
 
 #[cfg(all(test, feature = "std"))]
 mod tests;
 
 #[cfg(test)]
 extern crate std;
+
+// Always need alloc for no_std environments
+extern crate alloc;
+
+// Import alloc types and macros
+use alloc::{vec, vec::Vec, string::String, format, collections::VecDeque};
 
 #[cfg(all(not(test), not(feature = "std"), not(feature = "std-shim")))]
 use core::panic::PanicInfo;
@@ -63,7 +75,7 @@ fn panic(_info: &PanicInfo) -> ! {
 pub use arch::{Arch, DefaultArch};
 pub use atomic_scheduler::{AtomicScheduler, ATOMIC_SCHEDULER};
 pub use error::{ThreadError, ThreadResult};  
-pub use kernel::{Kernel, Scheduler, SpawnError};
+pub use kernel::{Kernel, SpawnError};
 pub use mem::{ArcLite, Stack, StackPool, StackSizeClass};
 pub use platform_timer::{init_preemption_timer, stop_preemption_timer, preemption_checkpoint};
 pub use safe_api::{
@@ -74,3 +86,13 @@ pub use stack_guard::{ProtectedStack, StackGuard, StackStats, StackStatus};
 pub use sync::{exit_thread, yield_thread};
 pub use thread::{Thread as OldThread, ThreadState as OldThreadState};
 pub use thread_new::{Thread, ThreadId, ThreadState, JoinHandle, ThreadBuilder, ReadyRef, RunningRef};
+pub use time::{Duration, Instant, Timer, TimerConfig, PreemptGuard, IrqGuard};
+pub use observability::{ThreadMetrics, SystemMetrics, ResourceLimiter, ThreadProfiler, HealthMonitor, ObservabilityConfig, init_observability, cleanup_observability};
+
+// Security and hardening exports
+pub use security::{SecurityConfig, SecurityViolation, SecurityStats, SecurityFeature, init_security, get_security_stats, configure_security_feature};
+
+// New lock-free scheduler exports
+pub use sched::{Scheduler as NewScheduler, CpuId, RoundRobinScheduler, DefaultScheduler};
+#[cfg(feature = "work-stealing")]
+pub use sched::WorkStealingScheduler;
