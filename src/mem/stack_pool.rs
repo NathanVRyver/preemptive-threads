@@ -69,6 +69,7 @@ impl StackSizeClass {
 /// This structure represents a single allocated stack that can be
 /// used by a thread. It handles both the memory allocation and
 /// optional guard page protection.
+#[derive(Clone)]
 pub struct Stack {
     /// Pointer to the start of the stack memory (lowest address)
     memory: NonNull<u8>,
@@ -118,6 +119,16 @@ impl Stack {
                 self.memory.as_ptr()
             }
         }
+    }
+    
+    /// Get bottom pointer (alias for stack_bottom for compatibility).
+    pub fn bottom(&self) -> *mut u8 {
+        self.stack_bottom()
+    }
+    
+    /// Get top pointer (alias for stack_top for compatibility).  
+    pub fn top(&self) -> *const u8 {
+        self.stack_top()
     }
     
     /// Check if this stack has guard pages enabled.
