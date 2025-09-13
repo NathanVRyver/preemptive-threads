@@ -1,6 +1,6 @@
 # Preemptive Multithreading Rust Library
 
-A production-ready `no_std` preemptive multithreading library built from scratch for OS kernels and embedded systems.
+A `no_std` preemptive multithreading library built from scratch for OS kernels and embedded systems.
 
 [![Crates.io](https://img.shields.io/crates/v/preemptive-threads.svg)](https://crates.io/crates/preemptive-threads)
 [![Documentation](https://docs.rs/preemptive-threads/badge.svg)](https://docs.rs/preemptive-threads)
@@ -373,22 +373,7 @@ at your option.
 - Security design influenced by CFI and Intel CET
 - Performance optimization techniques from high-frequency trading systems
 
-## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for version history and breaking changes.
 
-## Roadmap
-
-### v1.1 (Planned)
-- [ ] WASM support for browser environments
-- [ ] Real-time scheduling policies
-- [ ] Hardware transactional memory support
-- [ ] Advanced profiling integration
-
-### v1.2 (Future)
-- [ ] Distributed threading across network
-- [ ] GPU compute thread integration
-- [ ] Machine learning-based scheduling
-- [ ] Formal verification of core algorithms
 
 For detailed documentation, visit [docs.rs/preemptive-threads](https://docs.rs/preemptive-threads).
